@@ -18,6 +18,7 @@ class PaymentVoucher extends Model
         'vendor_phone',
         'vendor_email',
         'vendor_address',
+        'vendor_nic',
         'description',
         'amount',
         'apartment_id',
@@ -83,6 +84,11 @@ class PaymentVoucher extends Model
     }
 
     public function creator(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'created_by');
+    }
+
+    public function createdBy(): BelongsTo
     {
         return $this->belongsTo(User::class, 'created_by');
     }

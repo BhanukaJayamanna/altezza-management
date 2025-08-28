@@ -5,6 +5,19 @@
                 {{ __('Invoice Management') }}
             </h2>
             <div class="flex space-x-2">
+                @if(auth()->user()->hasRole(['admin', 'manager']))
+                    <form method="POST" action="{{ route('invoices.send-bulk-reminders') }}" class="inline">
+                        @csrf
+                        <button type="submit" 
+                                onclick="return confirm('Send payment reminders to all owners with overdue invoices?')"
+                                class="inline-flex items-center px-4 py-2 bg-orange-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-orange-700">
+                            <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 4.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path>
+                            </svg>
+                            Send Bulk Reminders
+                        </button>
+                    </form>
+                @endif
                 <button onclick="document.getElementById('generate-rent-modal').classList.remove('hidden')" 
                         class="inline-flex items-center px-4 py-2 bg-green-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-green-700">
                     <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -127,7 +140,7 @@
                     <form method="GET" action="{{ route('invoices.index') }}" class="grid grid-cols-1 md:grid-cols-5 gap-4">
                         <div>
                             <input type="text" name="search" value="{{ request('search') }}" 
-                                   placeholder="Search by invoice #, tenant, or apartment..." 
+                                   placeholder="Search by invoice #, owner, or apartment..." 
                                    class="w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
                         </div>
                         <div>
@@ -189,7 +202,7 @@
                                             Invoice
                                         </th>
                                         <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                            Tenant
+                                            Owner
                                         </th>
                                         <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                                             Apartment
@@ -219,8 +232,8 @@
                                                 <div class="text-sm text-gray-500">{{ $invoice->created_at->format('M d, Y') }}</div>
                                             </td>
                                             <td class="px-6 py-4 whitespace-nowrap">
-                                                <div class="text-sm font-medium text-gray-900">{{ $invoice->tenant->name }}</div>
-                                                <div class="text-sm text-gray-500">{{ $invoice->tenant->email }}</div>
+                                                <div class="text-sm font-medium text-gray-900">{{ $invoice->owner->name }}</div>
+                                                <div class="text-sm text-gray-500">{{ $invoice->owner->email }}</div>
                                             </td>
                                             <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                                                 {{ $invoice->apartment->number }}
@@ -230,7 +243,7 @@
                                             </td>
                                             <td class="px-6 py-4 whitespace-nowrap">
                                                 <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-800">
-                                                    {{ ucfirst($invoice->type) }}
+                                                    {{ $invoice->type === 'rooftop_reservation' ? 'Rooftop Reservation' : ucfirst($invoice->type) }}
                                                 </span>
                                             </td>
                                             <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
@@ -248,11 +261,35 @@
                                                 </span>
                                             </td>
                                             <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                                                <div class="flex space-x-2">
+                                                <div class="flex flex-wrap gap-2">
                                                     <a href="{{ route('invoices.show', $invoice) }}" class="text-indigo-600 hover:text-indigo-900">
                                                         View
                                                     </a>
+                                                    @if(auth()->user()->hasRole(['admin', 'manager']))
+                                                        <a href="{{ route('invoices.preview-pdf', $invoice) }}" target="_blank" class="text-purple-600 hover:text-purple-900">
+                                                            Preview PDF
+                                                        </a>
+                                                        <a href="{{ route('invoices.download-pdf', $invoice) }}" class="text-blue-600 hover:text-blue-900">
+                                                            Download PDF
+                                                        </a>
+                                                    @elseif(auth()->user()->hasRole('owner'))
+                                                        <a href="{{ route('owner.invoices.preview-pdf', $invoice) }}" target="_blank" class="text-purple-600 hover:text-purple-900">
+                                                            Preview PDF
+                                                        </a>
+                                                        <a href="{{ route('owner.invoices.download-pdf', $invoice) }}" class="text-blue-600 hover:text-blue-900">
+                                                            Download PDF
+                                                        </a>
+                                                    @endif
                                                     @if($invoice->status === 'pending')
+                                                        @if(auth()->user()->hasRole(['admin', 'manager']))
+                                                            <form method="POST" action="{{ route('invoices.send-reminder', $invoice) }}" class="inline">
+                                                                @csrf
+                                                                <button type="submit" class="text-orange-600 hover:text-orange-900" 
+                                                                        onclick="return confirm('Send payment reminder to {{ $invoice->owner->name }}?')">
+                                                                    Send Reminder
+                                                                </button>
+                                                            </form>
+                                                        @endif
                                                         <a href="{{ route('invoices.edit', $invoice) }}" class="text-green-600 hover:text-green-900">
                                                             Edit
                                                         </a>

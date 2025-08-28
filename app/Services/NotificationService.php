@@ -4,7 +4,11 @@ namespace App\Services;
 
 use App\Models\Notification;
 use App\Models\User;
+use App\Models\Setting;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Facades\Notification as LaravelNotification;
 
 class NotificationService
 {
@@ -65,14 +69,14 @@ class NotificationService
     /**
      * Create an overdue payment notification
      */
-    public function createOverdueNotification($userId, $apartmentNumber, $daysPastDue, $invoiceId = null)
+    public function createOverdueNotification($userId, $amount, $apartmentNumber, $daysOverdue, $invoiceId = null)
     {
         return Notification::createForUser(
             $userId,
             'overdue',
-            'Overdue Payment Alert',
-            "Rent payment overdue for Apartment {$apartmentNumber} - {$daysPastDue} days late",
-            ['apartment_number' => $apartmentNumber, 'days_past_due' => $daysPastDue, 'invoice_id' => $invoiceId],
+            'Payment Overdue',
+            "Payment of $" . number_format($amount, 2) . " for Apartment {$apartmentNumber} is {$daysOverdue} days overdue",
+            ['amount' => $amount, 'apartment_number' => $apartmentNumber, 'days_overdue' => $daysOverdue, 'invoice_id' => $invoiceId],
             $invoiceId ? route('invoices.show', $invoiceId) : null
         );
     }
@@ -84,7 +88,7 @@ class NotificationService
     {
         $activities = [
             'tenant_registered' => 'New Tenant Registration',
-            'owner_added' => 'New Owner Added',
+            'management_corporation_added' => 'New Management Corporation Added',
             'apartment_created' => 'New Apartment Created',
             'complaint_filed' => 'New Complaint Filed',
         ];
@@ -170,5 +174,83 @@ class NotificationService
         return Notification::whereNotNull('read_at')
             ->where('created_at', '<', now()->subDays(30))
             ->delete();
+    }
+
+    /**
+     * Create a payment reminder notification
+     */
+    public function createPaymentReminderNotification($userId, $amount, $apartmentNumber, $dueDate, $invoiceId = null)
+    {
+        return Notification::createForUser(
+            $userId,
+            'payment',
+            'Payment Reminder',
+            "Rent payment of $" . number_format($amount, 2) . " is due on {$dueDate} for Apartment {$apartmentNumber}",
+            ['amount' => $amount, 'apartment_number' => $apartmentNumber, 'due_date' => $dueDate, 'invoice_id' => $invoiceId],
+            $invoiceId ? route('invoices.show', $invoiceId) : null
+        );
+    }
+
+    /**
+     * Create a lease expiry notification
+     */
+    public function createLeaseExpiryNotification($userId, $apartmentNumber, $expiryDate, $daysLeft, $leaseId = null)
+    {
+        return Notification::createForUser(
+            $userId,
+            'lease',
+            'Lease Expiry Reminder',
+            "Your lease for Apartment {$apartmentNumber} expires in {$daysLeft} days on {$expiryDate}",
+            ['apartment_number' => $apartmentNumber, 'expiry_date' => $expiryDate, 'days_left' => $daysLeft, 'lease_id' => $leaseId],
+            $leaseId ? route('leases.show', $leaseId) : null
+        );
+    }
+
+    /**
+     * Send multi-channel notification (database + email + SMS)
+     */
+    public function sendMultiChannelNotification($user, $type, $title, $message, $data = [], $actionUrl = null)
+    {
+        // Database notification
+        $notification = Notification::createForUser(
+            $user->id,
+            $type,
+            $title,
+            $message,
+            $data,
+            $actionUrl
+        );
+
+        // Email notification if enabled
+        if (Setting::getValue('email_notifications_enabled', true)) {
+            try {
+                // Send email notification (implement specific email notification class)
+                Log::info('Email notification would be sent', [
+                    'user_id' => $user->id,
+                    'type' => $type,
+                    'title' => $title
+                ]);
+            } catch (\Exception $e) {
+                Log::error('Failed to send email notification', [
+                    'user_id' => $user->id,
+                    'error' => $e->getMessage()
+                ]);
+            }
+        }
+
+        // SMS notification if enabled
+        if (Setting::getValue('sms_enabled', false) && $user->phone) {
+            try {
+                $smsService = app(SmsService::class);
+                $smsService->send($user->phone, "{$title}: {$message}");
+            } catch (\Exception $e) {
+                Log::error('Failed to send SMS notification', [
+                    'user_id' => $user->id,
+                    'error' => $e->getMessage()
+                ]);
+            }
+        }
+
+        return $notification;
     }
 }

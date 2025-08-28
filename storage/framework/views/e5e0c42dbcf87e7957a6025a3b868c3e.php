@@ -89,12 +89,12 @@
                         </div>
                         
                         <div>
-                            <label for="block" class="block text-xs font-medium text-gray-700 mb-1">Block</label>
-                            <select name="block" id="block" class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
-                                <option value="">All Blocks</option>
-                                <?php $__currentLoopData = $blocks; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $block): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
-                                    <option value="<?php echo e($block); ?>" <?php echo e(request('block') == $block ? 'selected' : ''); ?>>
-                                        Block <?php echo e($block); ?>
+                            <label for="assessment_no" class="block text-xs font-medium text-gray-700 mb-1">Assessment No</label>
+                            <select name="assessment_no" id="assessment_no" class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
+                                <option value="">All Assessment Numbers</option>
+                                <?php $__currentLoopData = $assessment_nos; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $assessment_no): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                                    <option value="<?php echo e($assessment_no); ?>" <?php echo e(request('assessment_no') == $assessment_no ? 'selected' : ''); ?>>
+                                        <?php echo e($assessment_no); ?>
 
                                     </option>
                                 <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
@@ -143,31 +143,20 @@
                                                     Apartment <?php echo e($apartment->number); ?>
 
                                                 </h3>
-                                                <?php if($apartment->block): ?>
-                                                    <p class="text-sm text-gray-500 mt-1">Block <?php echo e($apartment->block); ?></p>
+                                                <?php if($apartment->assessment_no): ?>
+                                                    <p class="text-sm text-gray-500 mt-1">Assessment No: <?php echo e($apartment->assessment_no); ?></p>
                                                 <?php endif; ?>
                                             </div>
                                         </div>
 
                                         <!-- Property Details -->
                                         <div class="space-y-3">
-                                            <!-- Type & Floor -->
-                                            <div class="flex items-center justify-between">
-                                                <div class="flex items-center text-sm text-gray-600">
-                                                    <svg class="w-4 h-4 mr-2 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/>
-                                                    </svg>
-                                                    <span class="font-medium"><?php echo e(strtoupper($apartment->type)); ?></span>
-                                                </div>
-                                                <?php if($apartment->floor): ?>
-                                                    <div class="flex items-center text-sm text-gray-600">
-                                                        <svg class="w-4 h-4 mr-1 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 11l5-5m0 0l5 5m-5-5v12"/>
-                                                        </svg>
-                                                        Floor <?php echo e($apartment->floor); ?>
-
-                                                    </div>
-                                                <?php endif; ?>
+                                            <!-- Type -->
+                                            <div class="flex items-center text-sm text-gray-600">
+                                                <svg class="w-4 h-4 mr-2 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/>
+                                                </svg>
+                                                <span class="font-medium"><?php echo e(strtoupper($apartment->type)); ?></span>
                                             </div>
 
                                             <!-- Area -->
@@ -193,23 +182,23 @@
                                     <!-- People Info -->
                                     <div class="px-6 py-4 bg-gray-50 border-t border-gray-100">
                                         <div class="space-y-2">
-                                            <!-- Owner -->
+                                            <!-- Management Corporation -->
                                             <div class="flex items-center text-sm">
                                                 <svg class="w-4 h-4 mr-2 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/>
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/>
                                                 </svg>
-                                                <span class="text-gray-500">Owner:</span>
-                                                <span class="ml-1 font-medium text-gray-900"><?php echo e($apartment->owner->name ?? 'N/A'); ?></span>
+                                                <span class="text-gray-500">Management Corp:</span>
+                                                <span class="ml-1 font-medium text-gray-900"><?php echo e($apartment->managementCorporation->name ?? 'N/A'); ?></span>
                                             </div>
                                             
-                                            <!-- Tenant -->
-                                            <?php if($apartment->tenant): ?>
+                                            <!-- Owner -->
+                                            <?php if($apartment->currentOwner && $apartment->currentOwner->user): ?>
                                                 <div class="flex items-center text-sm">
                                                     <svg class="w-4 h-4 mr-2 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"/>
                                                     </svg>
-                                                    <span class="text-gray-500">Tenant:</span>
-                                                    <span class="ml-1 font-medium text-gray-900"><?php echo e($apartment->tenant->name); ?></span>
+                                                    <span class="text-gray-500">Owner:</span>
+                                                    <span class="ml-1 font-medium text-gray-900"><?php echo e($apartment->currentOwner->user->name); ?></span>
                                                 </div>
                                             <?php endif; ?>
                                         </div>

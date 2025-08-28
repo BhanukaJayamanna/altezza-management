@@ -57,7 +57,7 @@
                                     <div>
                                         <h3 class="text-2xl font-bold text-gray-900">Payment #{{ $payment->id }}</h3>
                                         <p class="text-sm text-gray-600 mt-1">
-                                            Amount: <span class="font-semibold text-lg">${{ number_format($payment->amount, 2) }}</span>
+                                            Amount: <span class="font-semibold text-lg">LKR {{ number_format($payment->amount, 2) }}</span>
                                         </p>
                                     </div>
                                     <div class="text-right">
@@ -107,12 +107,12 @@
                                 </div>
 
                                 <div>
-                                    <h4 class="text-lg font-medium text-gray-900 mb-3">Tenant Information</h4>
+                                    <h4 class="text-lg font-medium text-gray-900 mb-3">Owner Information</h4>
                                     <div class="bg-gray-50 p-4 rounded-lg">
-                                        <p class="font-medium text-gray-900">{{ $payment->tenant->name }}</p>
-                                        <p class="text-sm text-gray-600">{{ $payment->tenant->email }}</p>
-                                        @if($payment->tenant->phone)
-                                            <p class="text-sm text-gray-600">{{ $payment->tenant->phone }}</p>
+                                        <p class="font-medium text-gray-900">{{ $payment->owner->name }}</p>
+                                        <p class="text-sm text-gray-600">{{ $payment->owner->email }}</p>
+                                        @if($payment->owner->phone)
+                                            <p class="text-sm text-gray-600">{{ $payment->owner->phone }}</p>
                                         @endif
                                     </div>
                                 </div>
@@ -137,14 +137,14 @@
                                             </p>
                                             <p class="text-sm text-gray-600 mt-1">
                                                 Apartment {{ $payment->invoice->apartment->number }}
-                                                @if($payment->invoice->apartment->block)
-                                                    - Block {{ $payment->invoice->apartment->block }}
+                                                @if($payment->invoice->apartment->assessment_no)
+                                                    - Assessment No {{ $payment->invoice->apartment->assessment_no }}
                                                 @endif
                                             </p>
                                         </div>
                                         <div class="text-right">
                                             <p class="text-sm font-medium text-gray-900">
-                                                Total: ${{ number_format($payment->invoice->total_amount, 2) }}
+                                                Total: LKR {{ number_format($payment->invoice->total_amount, 2) }}
                                             </p>
                                             <a href="{{ route('invoices.show', $payment->invoice) }}" class="text-sm text-indigo-600 hover:text-indigo-900 mt-1 inline-block">
                                                 View Invoice →
@@ -181,7 +181,7 @@
                             <div class="space-y-4">
                                 <div class="flex justify-between">
                                     <span class="text-sm text-gray-600">Payment Amount</span>
-                                    <span class="text-sm font-medium text-gray-900">${{ number_format($payment->amount, 2) }}</span>
+                                    <span class="text-sm font-medium text-gray-900">LKR {{ number_format($payment->amount, 2) }}</span>
                                 </div>
                                 
                                 <div class="flex justify-between">
@@ -196,7 +196,7 @@
                                 
                                 <div class="flex justify-between pt-4 border-t border-gray-200">
                                     <span class="text-sm text-gray-600">Invoice Total</span>
-                                    <span class="text-sm font-medium text-gray-900">${{ number_format($payment->invoice->total_amount, 2) }}</span>
+                                    <span class="text-sm font-medium text-gray-900">LKR {{ number_format($payment->invoice->total_amount, 2) }}</span>
                                 </div>
                                 
                                 @php
@@ -206,13 +206,13 @@
                                 
                                 <div class="flex justify-between">
                                     <span class="text-sm text-gray-600">Total Paid</span>
-                                    <span class="text-sm font-medium text-gray-900">${{ number_format($totalPaid, 2) }}</span>
+                                    <span class="text-sm font-medium text-gray-900">LKR {{ number_format($totalPaid, 2) }}</span>
                                 </div>
                                 
                                 <div class="flex justify-between">
                                     <span class="text-sm text-gray-600">Remaining Balance</span>
                                     <span class="text-sm font-medium {{ $remainingBalance > 0 ? 'text-red-600' : 'text-green-600' }}">
-                                        ${{ number_format($remainingBalance, 2) }}
+                                        LKR {{ number_format($remainingBalance, 2) }}
                                     </span>
                                 </div>
                             </div>

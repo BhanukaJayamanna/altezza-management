@@ -15,7 +15,7 @@ return new class extends Migration
             $table->id();
             $table->string('request_number')->unique();
             $table->foreignId('apartment_id')->constrained('apartments')->onDelete('cascade');
-            $table->foreignId('tenant_id')->constrained('users')->onDelete('cascade');
+            $table->foreignId('owner_id')->constrained('users')->onDelete('cascade');
             $table->string('category')->default('general'); // plumbing, electrical, etc.
             $table->enum('priority', ['low', 'medium', 'high', 'urgent'])->default('medium');
             $table->string('title');

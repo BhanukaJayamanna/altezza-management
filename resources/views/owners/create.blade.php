@@ -2,7 +2,7 @@
     <x-slot name="header">
         <div class="flex justify-between items-center">
             <h2 class="font-semibold text-xl text-gray-800 leading-tight">
-                {{ __('Add New Property Owner') }}
+                {{ __('Add New Owner') }}
             </h2>
             <a href="{{ route('owners.index') }}" class="inline-flex items-center px-4 py-2 bg-gray-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-gray-700">
                 Back to Owners
@@ -81,6 +81,61 @@
                                        value="{{ old('id_document') }}"
                                        class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
                             </div>
+                        </div>
+                    </div>
+
+                    <!-- Account Information -->
+                    <div class="border-t pt-6">
+                        <h3 class="text-lg font-semibold text-gray-900 mb-4">Account Information</h3>
+                        
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <!-- Password -->
+                            <div>
+                                <label for="password" class="block text-sm font-medium text-gray-700 mb-2">
+                                    Password <span class="text-red-500">*</span>
+                                </label>
+                                <input type="password" 
+                                       id="password" 
+                                       name="password" 
+                                       required
+                                       class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                            </div>
+
+                            <!-- Confirm Password -->
+                            <div>
+                                <label for="password_confirmation" class="block text-sm font-medium text-gray-700 mb-2">
+                                    Confirm Password <span class="text-red-500">*</span>
+                                </label>
+                                <input type="password" 
+                                       id="password_confirmation" 
+                                       name="password_confirmation" 
+                                       required
+                                       class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Apartment & Lease Information -->
+                    <div class="border-t pt-6">
+                        <h3 class="text-lg font-semibold text-gray-900 mb-4">Apartment & Lease Information</h3>
+                        
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <!-- Apartment -->
+                            <div>
+                                <label for="apartment_id" class="block text-sm font-medium text-gray-700 mb-2">
+                                    Apartment
+                                </label>
+                                <select id="apartment_id" 
+                                        name="apartment_id"
+                                        class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                                    <option value="">Select Apartment (Optional)</option>
+                                    @foreach($availableApartments as $apartment)
+                                        <option value="{{ $apartment->id }}" {{ old('apartment_id') == $apartment->id ? 'selected' : '' }}>
+                                            {{ $apartment->number }} - {{ $apartment->type }} ({{ $apartment->assessment_no }})
+                                        </option>
+                                    @endforeach
+                                </select>
+                            </div>
 
                             <!-- Status -->
                             <div>
@@ -93,75 +148,79 @@
                                         class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
                                     <option value="active" {{ old('status') == 'active' ? 'selected' : '' }}>Active</option>
                                     <option value="inactive" {{ old('status') == 'inactive' ? 'selected' : '' }}>Inactive</option>
+                                    <option value="moved_out" {{ old('status') == 'moved_out' ? 'selected' : '' }}>Moved Out</option>
                                 </select>
                             </div>
-                        </div>
 
-                        <!-- Address -->
-                        <div class="mt-6">
-                            <label for="address" class="block text-sm font-medium text-gray-700 mb-2">
-                                Address
-                            </label>
-                            <textarea id="address" 
-                                      name="address" 
-                                      rows="3" 
-                                      class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500">{{ old('address') }}</textarea>
+                            <!-- Lease Start Date -->
+                            <div>
+                                <label for="lease_start" class="block text-sm font-medium text-gray-700 mb-2">
+                                    Lease Start Date
+                                </label>
+                                <input type="date" 
+                                       id="lease_start" 
+                                       name="lease_start" 
+                                       value="{{ old('lease_start') }}"
+                                       class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                            </div>
+
+                            <!-- Lease End Date -->
+                            <div>
+                                <label for="lease_end" class="block text-sm font-medium text-gray-700 mb-2">
+                                    Lease End Date
+                                </label>
+                                <input type="date" 
+                                       id="lease_end" 
+                                       name="lease_end" 
+                                       value="{{ old('lease_end') }}"
+                                       class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                            </div>
                         </div>
                     </div>
 
-                    <!-- Bank Details -->
+                    <!-- Emergency Contact Information -->
                     <div class="border-t pt-6">
-                        <h3 class="text-lg font-semibold text-gray-900 mb-4">Bank Account Information</h3>
-                        <p class="text-sm text-gray-600 mb-4">Optional: Add bank details for rental payments and transactions.</p>
+                        <h3 class="text-lg font-semibold text-gray-900 mb-4">Emergency Contact Information</h3>
                         
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                            <!-- Account Holder Name -->
+                            <!-- Emergency Contact Name -->
                             <div>
-                                <label for="bank_account_name" class="block text-sm font-medium text-gray-700 mb-2">
-                                    Account Holder Name
+                                <label for="emergency_contact_name" class="block text-sm font-medium text-gray-700 mb-2">
+                                    Emergency Contact Name
                                 </label>
                                 <input type="text" 
-                                       id="bank_account_name" 
-                                       name="bank_account_name" 
-                                       value="{{ old('bank_account_name') }}"
+                                       id="emergency_contact_name" 
+                                       name="emergency_contact_name" 
+                                       value="{{ old('emergency_contact_name') }}"
                                        class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
                             </div>
 
-                            <!-- Account Number -->
+                            <!-- Emergency Contact Phone -->
                             <div>
-                                <label for="bank_account_number" class="block text-sm font-medium text-gray-700 mb-2">
-                                    Account Number
+                                <label for="emergency_contact_phone" class="block text-sm font-medium text-gray-700 mb-2">
+                                    Emergency Contact Phone
                                 </label>
-                                <input type="text" 
-                                       id="bank_account_number" 
-                                       name="bank_account_number" 
-                                       value="{{ old('bank_account_number') }}"
+                                <input type="tel" 
+                                       id="emergency_contact_phone" 
+                                       name="emergency_contact_phone" 
+                                       value="{{ old('emergency_contact_phone') }}"
                                        class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
                             </div>
+                        </div>
+                    </div>
 
-                            <!-- Bank Name -->
-                            <div>
-                                <label for="bank_name" class="block text-sm font-medium text-gray-700 mb-2">
-                                    Bank Name
-                                </label>
-                                <input type="text" 
-                                       id="bank_name" 
-                                       name="bank_name" 
-                                       value="{{ old('bank_name') }}"
-                                       class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
-                            </div>
-
-                            <!-- Routing Number -->
-                            <div>
-                                <label for="bank_routing" class="block text-sm font-medium text-gray-700 mb-2">
-                                    Routing Number
-                                </label>
-                                <input type="text" 
-                                       id="bank_routing" 
-                                       name="bank_routing" 
-                                       value="{{ old('bank_routing') }}"
-                                       class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
-                            </div>
+                    <!-- Notes -->
+                    <div class="border-t pt-6">
+                        <h3 class="text-lg font-semibold text-gray-900 mb-4">Additional Notes</h3>
+                        
+                        <div>
+                            <label for="notes" class="block text-sm font-medium text-gray-700 mb-2">
+                                Notes
+                            </label>
+                            <textarea id="notes" 
+                                      name="notes" 
+                                      rows="4" 
+                                      class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500">{{ old('notes') }}</textarea>
                         </div>
                     </div>
 

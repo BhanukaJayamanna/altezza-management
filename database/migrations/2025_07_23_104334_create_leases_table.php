@@ -15,7 +15,7 @@ return new class extends Migration
             $table->id();
             $table->string('lease_number')->unique();
             $table->foreignId('apartment_id')->constrained('apartments')->onDelete('cascade');
-            $table->foreignId('tenant_id')->constrained('users')->onDelete('cascade');
+            $table->foreignId('owner_id')->constrained('users')->onDelete('cascade');
             $table->foreignId('owner_id')->constrained('owners')->onDelete('cascade');
             $table->date('start_date');
             $table->date('end_date');

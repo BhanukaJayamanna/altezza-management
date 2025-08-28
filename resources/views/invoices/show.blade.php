@@ -15,6 +15,16 @@
                 @endif
                 
                 @if($invoice->status === 'pending' && (auth()->user()->hasRole('admin') || auth()->user()->hasRole('manager')))
+                    <form action="{{ route('invoices.send-reminder', $invoice) }}" method="POST" class="inline">
+                        @csrf
+                        <button type="submit" class="inline-flex items-center px-4 py-2 bg-orange-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-orange-700" onclick="return confirm('Send payment reminder to {{ $invoice->owner->name }}?')">
+                            <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 4.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path>
+                            </svg>
+                            Send Reminder
+                        </button>
+                    </form>
+                    
                     <form action="{{ route('invoices.mark-paid', $invoice) }}" method="POST" class="inline">
                         @csrf
                         @method('PATCH')
@@ -25,6 +35,38 @@
                             Mark as Paid
                         </button>
                     </form>
+                @endif
+
+                @if(auth()->user()->hasRole(['admin', 'manager']))
+                    <a href="{{ route('invoices.preview-pdf', $invoice) }}" target="_blank" class="inline-flex items-center px-4 py-2 bg-purple-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-purple-700">
+                        <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path>
+                        </svg>
+                        Preview PDF
+                    </a>
+
+                    <a href="{{ route('invoices.download-pdf', $invoice) }}" class="inline-flex items-center px-4 py-2 bg-blue-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-blue-700">
+                        <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                        </svg>
+                        Download PDF
+                    </a>
+                @elseif(auth()->user()->hasRole('owner'))
+                    <a href="{{ route('owner.invoices.preview-pdf', $invoice) }}" target="_blank" class="inline-flex items-center px-4 py-2 bg-purple-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-purple-700">
+                        <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path>
+                        </svg>
+                        Preview PDF
+                    </a>
+
+                    <a href="{{ route('owner.invoices.download-pdf', $invoice) }}" class="inline-flex items-center px-4 py-2 bg-blue-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-blue-700">
+                        <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                        </svg>
+                        Download PDF
+                    </a>
                 @endif
 
                 <button onclick="window.print()" class="inline-flex items-center px-4 py-2 bg-gray-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-gray-700">
@@ -74,9 +116,10 @@
                                                 @if($invoice->type === 'rent') bg-blue-100 text-blue-800
                                                 @elseif($invoice->type === 'utility') bg-green-100 text-green-800
                                                 @elseif($invoice->type === 'maintenance') bg-yellow-100 text-yellow-800
+                                                @elseif($invoice->type === 'rooftop_reservation') bg-purple-100 text-purple-800
                                                 @else bg-gray-100 text-gray-800
                                                 @endif">
-                                                {{ ucfirst($invoice->type) }}
+                                                {{ $invoice->type === 'rooftop_reservation' ? 'Rooftop Reservation' : ucfirst($invoice->type) }}
                                             </span>
                                         </p>
                                     </div>
@@ -104,10 +147,10 @@
                                 <div>
                                     <h4 class="text-lg font-medium text-gray-900 mb-3">Bill To</h4>
                                     <div class="bg-gray-50 p-4 rounded-lg">
-                                        <p class="font-medium text-gray-900">{{ $invoice->tenant->name }}</p>
-                                        <p class="text-sm text-gray-600">{{ $invoice->tenant->email }}</p>
-                                        @if($invoice->tenant->phone)
-                                            <p class="text-sm text-gray-600">{{ $invoice->tenant->phone }}</p>
+                                        <p class="font-medium text-gray-900">{{ $invoice->owner->name }}</p>
+                                        <p class="text-sm text-gray-600">{{ $invoice->owner->email }}</p>
+                                        @if($invoice->owner->phone)
+                                            <p class="text-sm text-gray-600">{{ $invoice->owner->phone }}</p>
                                         @endif
                                     </div>
                                 </div>
@@ -118,9 +161,6 @@
                                         <p class="font-medium text-gray-900">Apartment {{ $invoice->apartment->number }}</p>
                                         @if($invoice->apartment->block)
                                             <p class="text-sm text-gray-600">Block {{ $invoice->apartment->block }}</p>
-                                        @endif
-                                        @if($invoice->apartment->floor)
-                                            <p class="text-sm text-gray-600">Floor {{ $invoice->apartment->floor }}</p>
                                         @endif
                                         @if($invoice->apartment->type)
                                             <p class="text-sm text-gray-600">{{ ucfirst($invoice->apartment->type) }}</p>
@@ -170,10 +210,10 @@
                                                                 {{ $item['quantity'] ?? 1 }}
                                                             </td>
                                                             <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                                                                ${{ number_format($item['rate'] ?? 0, 2) }}
+                                                                LKR {{ number_format($item['rate'] ?? 0, 2) }}
                                                             </td>
                                                             <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                                                                ${{ number_format($item['amount'] ?? 0, 2) }}
+                                                                LKR {{ number_format($item['amount'] ?? 0, 2) }}
                                                             </td>
                                                         </tr>
                                                     @endforeach
@@ -199,26 +239,26 @@
                                 <div class="space-y-3">
                                     <div class="flex justify-between text-sm text-gray-600">
                                         <span>Subtotal:</span>
-                                        <span>${{ number_format($invoice->amount, 2) }}</span>
+                                        <span>LKR {{ number_format($invoice->amount, 2) }}</span>
                                     </div>
                                     
                                     @if($invoice->late_fee > 0)
                                         <div class="flex justify-between text-sm text-gray-600">
                                             <span>Late Fee:</span>
-                                            <span>${{ number_format($invoice->late_fee, 2) }}</span>
+                                            <span>LKR {{ number_format($invoice->late_fee, 2) }}</span>
                                         </div>
                                     @endif
                                     
                                     @if($invoice->discount > 0)
                                         <div class="flex justify-between text-sm text-green-600">
                                             <span>Discount:</span>
-                                            <span>-${{ number_format($invoice->discount, 2) }}</span>
+                                            <span>-LKR {{ number_format($invoice->discount, 2) }}</span>
                                         </div>
                                     @endif
                                     
                                     <div class="flex justify-between text-lg font-bold text-gray-900 border-t border-gray-200 pt-3">
                                         <span>Total Amount:</span>
-                                        <span>${{ number_format($invoice->total_amount, 2) }}</span>
+                                        <span>LKR {{ number_format($invoice->total_amount, 2) }}</span>
                                     </div>
                                 </div>
                             </div>
@@ -274,7 +314,7 @@
                                     @foreach($invoice->payments as $payment)
                                         <div class="flex justify-between items-center py-2 border-b border-gray-100 last:border-b-0">
                                             <div>
-                                                <p class="text-sm font-medium text-gray-900">${{ number_format($payment->amount, 2) }}</p>
+                                                <p class="text-sm font-medium text-gray-900">LKR {{ number_format($payment->amount, 2) }}</p>
                                                 <p class="text-xs text-gray-600">{{ $payment->created_at->format('M d, Y') }}</p>
                                             </div>
                                             <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium

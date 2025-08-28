@@ -5,7 +5,7 @@
                 <h2 class="text-2xl font-bold bg-gradient-to-r from-slate-900 to-slate-700 bg-clip-text text-transparent">
                     {{ __('Dashboard') }}
                 </h2>
-                <p class="text-slate-600 text-sm mt-1">Welcome back, {{ Auth::user()->name }}! Here's what's happening with your properties.</p>
+                <p class="text-slate-600 text-sm mt-1">Welcome back, {{ Auth::user()?->name ?? 'Guest' }}! Here's what's happening with your properties.</p>
             </div>
             <div class="hidden md:flex items-center space-x-3">
                 <div class="text-right">
@@ -32,16 +32,15 @@
         />
         @endcan
 
-        @can('view_tenants')
+        @can('view_owners')
         <x-stat-card
-            title="Active Tenants"
-            :value="\App\Models\Tenant::where('status', 'active')->count()"
+            title="Active Owners"
+            :value="\App\Models\Owner::where('status', 'active')->count()"
             color="green"
             :icon="'<svg class=&quot;w-6 h-6 text-white&quot; fill=&quot;none&quot; stroke=&quot;currentColor&quot; viewBox=&quot;0 0 24 24&quot;><path stroke-linecap=&quot;round&quot; stroke-linejoin=&quot;round&quot; stroke-width=&quot;2&quot; d=&quot;M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197m13.5-9a2.5 2.5 0 11-5 0 2.5 2.5 0 015 0z&quot;></path></svg>'"
         />
         @endcan
 
-        @can('view_invoices')
         @can('view_invoices')
         <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg">
             <div class="p-6">
@@ -57,14 +56,15 @@
                         @can('manage_invoices')
                             <div class="text-sm font-medium text-gray-500">Pending Invoices</div>
                             <div class="text-2xl font-bold text-gray-900">{{ \App\Models\Invoice::where('status', 'pending')->count() }}</div>
-                        @else
+                        @endcan
+                        @cannot('manage_invoices')
                             @php
-                                $userTenant = Auth::user()->tenant;
-                                $pendingCount = $userTenant ? \App\Models\Invoice::where('tenant_id', $userTenant->id)->where('status', 'pending')->count() : 0;
+                                $userOwner = Auth::user()?->owner;
+                                $pendingCount = $userOwner ? \App\Models\Invoice::where('owner_id', $userOwner->id)->where('status', 'pending')->count() : 0;
                             @endphp
                             <div class="text-sm font-medium text-gray-500">My Pending Invoices</div>
                             <div class="text-2xl font-bold text-gray-900">{{ $pendingCount }}</div>
-                        @endcan
+                        @endcannot
                     </div>
                 </div>
             </div>
@@ -84,14 +84,15 @@
                         @can('manage_invoices')
                             <div class="text-sm font-medium text-gray-500">Monthly Revenue</div>
                             <div class="text-2xl font-bold text-gray-900">@currency(\App\Models\Invoice::where('status', 'paid')->whereMonth('created_at', now()->month)->sum('total_amount'))</div>
-                        @else
+                        @endcan
+                        @cannot('manage_invoices')
                             @php
-                                $userTenant = Auth::user()->tenant;
-                                $monthlyTotal = $userTenant ? \App\Models\Invoice::where('tenant_id', $userTenant->id)->where('status', 'paid')->whereMonth('created_at', now()->month)->sum('total_amount') : 0;
+                                $userOwner = Auth::user()?->owner;
+                                $monthlyTotal = $userOwner ? \App\Models\Invoice::where('owner_id', $userOwner->id)->where('status', 'paid')->whereMonth('created_at', now()->month)->sum('total_amount') : 0;
                             @endphp
                             <div class="text-sm font-medium text-gray-500">Monthly Payments</div>
                             <div class="text-2xl font-bold text-gray-900">@currency($monthlyTotal)</div>
-                        @endcan
+                        @endcannot
                     </div>
                 </div>
             </div>
@@ -109,7 +110,7 @@
 
         <x-stat-card
             title="Monthly Expenses"
-            :value="'₹ ' . number_format(\App\Models\PaymentVoucher::where('status', 'approved')->whereMonth('created_at', now()->month)->sum('amount'), 2)"
+            :value="'LKR ' . number_format(\App\Models\PaymentVoucher::where('status', 'approved')->whereMonth('created_at', now()->month)->sum('amount'), 2)"
             color="red"
             :icon="'<svg class=&quot;w-6 h-6 text-white&quot; fill=&quot;none&quot; stroke=&quot;currentColor&quot; viewBox=&quot;0 0 24 24&quot;><path stroke-linecap=&quot;round&quot; stroke-linejoin=&quot;round&quot; stroke-width=&quot;2&quot; d=&quot;M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z&quot;></path></svg>'"
         />
@@ -125,13 +126,14 @@
                     <h3 class="text-lg font-medium text-gray-900">Recent Invoices</h3>
                     @can('manage_invoices')
                         <a href="{{ route('invoices.index') }}" class="text-sm text-cyan-600 hover:text-cyan-500">View all</a>
-                    @else
-                        <a href="{{ route('tenant.invoices') }}" class="text-sm text-cyan-600 hover:text-cyan-500">View all</a>
                     @endcan
+                    @cannot('manage_invoices')
+                        <a href="{{ route('owner.invoices') }}" class="text-sm text-cyan-600 hover:text-cyan-500">View all</a>
+                    @endcannot
                 </div>
                 <div class="space-y-3">
                     @can('manage_invoices')
-                        @forelse(\App\Models\Invoice::with(['apartment', 'tenant'])->latest()->take(5)->get() as $invoice)
+                        @forelse(\App\Models\Invoice::with(['apartment', 'owner'])->latest()->take(5)->get() as $invoice)
                         <div class="flex items-center justify-between">
                             <div class="flex items-center">
                                 <div class="flex-shrink-0">
@@ -141,7 +143,7 @@
                                 </div>
                                 <div class="ml-3">
                                     <p class="text-sm font-medium text-gray-900">{{ $invoice->invoice_number }}</p>
-                                    <p class="text-sm text-gray-500">{{ $invoice->tenant->name ?? 'N/A' }}</p>
+                                    <p class="text-sm text-gray-500">{{ $invoice->owner->name ?? 'N/A' }}</p>
                                 </div>
                             </div>
                             <div class="flex items-center">
@@ -154,12 +156,13 @@
                         @empty
                         <p class="text-sm text-gray-500">No invoices found.</p>
                         @endforelse
-                    @else
+                    @endcan
+                    @cannot('manage_invoices')
                         @php
-                            $userTenant = Auth::user()->tenant;
-                            $tenantInvoices = $userTenant ? \App\Models\Invoice::with(['apartment'])->where('tenant_id', $userTenant->id)->latest()->take(5)->get() : collect();
+                            $userOwner = Auth::user()?->owner;
+                            $ownerInvoices = $userOwner ? \App\Models\Invoice::with(['apartment'])->where('owner_id', $userOwner->id)->latest()->take(5)->get() : collect();
                         @endphp
-                        @forelse($tenantInvoices as $invoice)
+                        @forelse($ownerInvoices as $invoice)
                         <div class="flex items-center justify-between">
                             <div class="flex items-center">
                                 <div class="flex-shrink-0">
@@ -174,7 +177,7 @@
                             </div>
                             <div class="flex items-center">
                                 <span class="text-sm font-medium text-gray-900">@currency($invoice->total_amount)</span>
-                                <span class="ml-2 inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium {{ $invoice->status === 'paid' ? 'bg-green-100 text-green-800' : ($invoice->status === 'overdue' ? 'bg-red-100 text-red-800' : 'bg-yellow-100 text-yellow-800') }}">>
+                                <span class="ml-2 inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium {{ $invoice->status === 'paid' ? 'bg-green-100 text-green-800' : ($invoice->status === 'overdue' ? 'bg-red-100 text-red-800' : 'bg-yellow-100 text-yellow-800') }}">
                                     {{ ucfirst($invoice->status) }}
                                 </span>
                             </div>
@@ -182,7 +185,7 @@
                         @empty
                         <p class="text-sm text-gray-500">No invoices found.</p>
                         @endforelse
-                    @endcan
+                    @endcannot
                 </div>
             </div>
         </div>
@@ -213,7 +216,7 @@
                             </div>
                         </div>
                         <div class="flex items-center">
-                            <span class="text-sm font-medium text-gray-900">₹{{ number_format($voucher->amount, 2) }}</span>
+                            <span class="text-sm font-medium text-gray-900">LKR {{ number_format($voucher->amount, 2) }}</span>
                             <span class="ml-2 inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium {{ $voucher->status === 'approved' ? 'bg-green-100 text-green-800' : ($voucher->status === 'rejected' ? 'bg-red-100 text-red-800' : 'bg-yellow-100 text-yellow-800') }}">
                                 {{ ucfirst($voucher->status) }}
                             </span>

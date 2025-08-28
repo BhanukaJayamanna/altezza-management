@@ -118,7 +118,7 @@ class Setting extends Model
     {
         return [
             'code' => static::getValue('currency', 'LKR'),
-            'symbol' => static::getValue('currency_symbol', 'Rs.'),
+            'symbol' => static::getValue('currency_symbol', 'LKR '),
         ];
     }
 

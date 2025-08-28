@@ -64,7 +64,7 @@
                                     </td>
                                     <td class="px-6 py-4 whitespace-nowrap">
                                         <div class="text-sm text-gray-900">{{ $meter->apartment->number }}</div>
-                                        <div class="text-sm text-gray-500">{{ $meter->apartment->type }} - {{ $meter->apartment->block }}</div>
+                                        <div class="text-sm text-gray-500">{{ $meter->apartment->type }} - {{ $meter->apartment->assessment_no }}</div>
                                     </td>
                                     <td class="px-6 py-4 whitespace-nowrap">
                                         <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium

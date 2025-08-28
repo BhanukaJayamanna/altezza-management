@@ -2,9 +2,12 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\User;
 use App\Models\Owner;
+use App\Models\Apartment;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Hash;
+use Spatie\Permission\Models\Role;
 
 class OwnerController extends Controller
 {
@@ -13,25 +16,31 @@ class OwnerController extends Controller
      */
     public function index(Request $request)
     {
-        $query = Owner::withCount(['apartments', 'apartments as occupied_apartments_count' => function($q) {
-            $q->where('status', 'occupied');
-        }]);
+        $query = User::whereHas('roles', function($q) {
+            $q->where('name', 'owner');
+        })->with(['ownerProfile', 'ownerProfile.apartment']);
 
-        // Search by name, email, or phone
+        // Search by name or email
         if ($request->filled('search')) {
             $query->where(function($q) use ($request) {
                 $q->where('name', 'like', '%' . $request->search . '%')
-                  ->orWhere('email', 'like', '%' . $request->search . '%')
-                  ->orWhere('phone', 'like', '%' . $request->search . '%');
+                  ->orWhere('email', 'like', '%' . $request->search . '%');
             });
         }
 
-        // Filter by status
-        if ($request->filled('status')) {
-            $query->where('status', $request->status);
+        $owners = $query->paginate(15)->withQueryString();
+        
+        // Ensure all owner users have owner profiles
+        foreach ($owners as $owner) {
+            if (!$owner->ownerProfile && $owner->hasRole('owner')) {
+                $owner->ownerProfile()->create([
+                    'status' => 'active',
+                ]);
+            }
         }
-
-        $owners = $query->orderBy('name')->paginate(15)->withQueryString();
+        
+        // Reload with owner profiles
+        $owners->load(['ownerProfile', 'ownerProfile.apartment']);
         
         return view('owners.index', compact('owners'));
     }
@@ -41,7 +50,9 @@ class OwnerController extends Controller
      */
     public function create()
     {
-        return view('owners.create');
+        $availableApartments = Apartment::where('status', 'vacant')->orderBy('number')->get();
+        
+        return view('owners.create', compact('availableApartments'));
     }
 
     /**
@@ -51,37 +62,54 @@ class OwnerController extends Controller
     {
         $validated = $request->validate([
             'name' => 'required|string|max:255',
-            'email' => 'required|email|unique:owners,email',
+            'email' => 'required|string|email|max:255|unique:users',
+            'password' => 'required|string|min:8|confirmed',
             'phone' => 'nullable|string|max:20',
-            'address' => 'nullable|string|max:500',
-            'id_document' => 'nullable|string|max:50',
-            'bank_account_name' => 'nullable|string|max:255',
-            'bank_account_number' => 'nullable|string|max:50',
-            'bank_name' => 'nullable|string|max:255',
-            'bank_routing' => 'nullable|string|max:50',
-            'status' => 'required|in:active,inactive',
+            'apartment_id' => 'nullable|exists:apartments,id',
+            'status' => 'required|in:active,inactive,moved_out',
+            'lease_start' => 'nullable|date',
+            'lease_end' => 'nullable|date|after:lease_start',
+            'security_deposit' => 'nullable|numeric|min:0',
+            'id_document' => 'nullable|string|max:255',
+            'emergency_contact_name' => 'nullable|string|max:255',
+            'emergency_contact_phone' => 'nullable|string|max:20',
+            'notes' => 'nullable|string',
         ]);
 
-        // Format bank details
-        $bankDetails = null;
-        if ($request->filled(['bank_account_name', 'bank_account_number', 'bank_name'])) {
-            $bankDetails = [
-                'account_name' => $request->bank_account_name,
-                'account_number' => $request->bank_account_number,
-                'bank_name' => $request->bank_name,
-                'routing_number' => $request->bank_routing,
-            ];
-        }
-
-        Owner::create([
+        // Create the user
+        $user = User::create([
             'name' => $validated['name'],
             'email' => $validated['email'],
-            'phone' => $validated['phone'],
-            'address' => $validated['address'],
-            'id_document' => $validated['id_document'],
-            'bank_details' => $bankDetails,
-            'status' => $validated['status'],
+            'password' => Hash::make($validated['password']),
+            'phone' => $validated['phone'] ?? null,
         ]);
+
+        // Assign owner role
+        $user->assignRole('owner');
+
+        // Create owner profile
+        $ownerData = [
+            'user_id' => $user->id,
+            'apartment_id' => $validated['apartment_id'] ?? null,
+            'status' => $validated['status'],
+            'lease_start' => $validated['lease_start'] ?? null,
+            'lease_end' => $validated['lease_end'] ?? null,
+            'id_document' => $validated['id_document'] ?? null,
+            'emergency_contact' => $validated['emergency_contact_name'] ?? null,
+            'emergency_phone' => $validated['emergency_contact_phone'] ?? null,
+            'notes' => $validated['notes'] ?? null,
+        ];
+
+        Owner::create($ownerData);
+
+        // Update apartment if selected
+        if ($validated['apartment_id']) {
+            $apartment = Apartment::find($validated['apartment_id']);
+            $apartment->update([
+                'owner_id' => $user->id,
+                'status' => 'occupied'
+            ]);
+        }
 
         toast_success('Owner created successfully!');
         return redirect()->route('owners.index');
@@ -90,59 +118,114 @@ class OwnerController extends Controller
     /**
      * Display the specified resource.
      */
-    public function show(Owner $owner)
+    public function show(User $owner)
     {
-        $owner->load(['apartments.tenant', 'leases.apartment', 'leases.tenant']);
+        $owner->load([
+            'ownerProfile', 
+            'ownerProfile.apartment',
+            'ownerProfile.apartment.managementCorporation',
+            'roles'
+        ]);
         
-        return view('owners.show', compact('owner'));
+        // Create owner profile if it doesn't exist for users with owner role
+        if (!$owner->ownerProfile && $owner->hasRole('owner')) {
+            $owner->ownerProfile()->create([
+                'status' => 'active',
+            ]);
+            $owner->load('ownerProfile');
+        }
+
+        // Get additional related data if owner has an apartment
+        $apartment = $owner->ownerProfile?->apartment;
+        $recentInvoices = collect();
+        $maintenanceRequests = collect();
+        
+        if ($apartment) {
+            // Get recent invoices for the apartment (safely)
+            try {
+                $recentInvoices = $apartment->invoices()
+                    ->latest()
+                    ->limit(5)
+                    ->get();
+            } catch (\Exception $e) {
+                $recentInvoices = collect();
+            }
+                
+            // Get recent maintenance requests (safely)
+            try {
+                $maintenanceRequests = $apartment->maintenanceRequests()
+                    ->latest()
+                    ->limit(5)
+                    ->get();
+            } catch (\Exception $e) {
+                $maintenanceRequests = collect();
+            }
+        }
+        
+        return view('owners.show', compact('owner', 'apartment', 'recentInvoices', 'maintenanceRequests'));
     }
 
     /**
      * Show the form for editing the specified resource.
      */
-    public function edit(Owner $owner)
+    public function edit(User $owner)
     {
-        return view('owners.edit', compact('owner'));
+        $owner->load('ownerProfile');
+        $availableApartments = Apartment::where('status', 'vacant')
+            ->orWhere('owner_id', $owner->id)
+            ->orderBy('number')
+            ->get();
+        
+        return view('owners.edit', compact('owner', 'availableApartments'));
     }
 
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, Owner $owner)
+    public function update(Request $request, User $owner)
     {
         $validated = $request->validate([
             'name' => 'required|string|max:255',
-            'email' => 'required|email|unique:owners,email,' . $owner->id,
+            'email' => 'required|string|email|max:255|unique:users,email,' . $owner->id,
+            'password' => 'nullable|string|min:8|confirmed',
             'phone' => 'nullable|string|max:20',
-            'address' => 'nullable|string|max:500',
-            'id_document' => 'nullable|string|max:50',
-            'bank_account_name' => 'nullable|string|max:255',
-            'bank_account_number' => 'nullable|string|max:50',
-            'bank_name' => 'nullable|string|max:255',
-            'bank_routing' => 'nullable|string|max:50',
-            'status' => 'required|in:active,inactive',
+            'apartment_id' => 'nullable|exists:apartments,id',
+            'status' => 'required|in:active,inactive,moved_out',
+            'lease_start' => 'nullable|date',
+            'lease_end' => 'nullable|date|after:lease_start',
+            'security_deposit' => 'nullable|numeric|min:0',
+            'id_document' => 'nullable|string|max:255',
+            'emergency_contact_name' => 'nullable|string|max:255',
+            'emergency_contact_phone' => 'nullable|string|max:20',
+            'notes' => 'nullable|string',
         ]);
 
-        // Format bank details
-        $bankDetails = null;
-        if ($request->filled(['bank_account_name', 'bank_account_number', 'bank_name'])) {
-            $bankDetails = [
-                'account_name' => $request->bank_account_name,
-                'account_number' => $request->bank_account_number,
-                'bank_name' => $request->bank_name,
-                'routing_number' => $request->bank_routing,
-            ];
-        }
-
-        $owner->update([
+        // Update user
+        $userData = [
             'name' => $validated['name'],
             'email' => $validated['email'],
-            'phone' => $validated['phone'],
-            'address' => $validated['address'],
-            'id_document' => $validated['id_document'],
-            'bank_details' => $bankDetails,
-            'status' => $validated['status'],
-        ]);
+            'phone' => $validated['phone'] ?? null,
+        ];
+
+        if ($validated['password']) {
+            $userData['password'] = Hash::make($validated['password']);
+        }
+
+        $owner->update($userData);
+
+        // Update owner profile
+        if ($owner->ownerProfile) {
+            $owner->ownerProfile->update([
+                'apartment_id' => $validated['apartment_id'] ?? null,
+                'status' => $validated['status'],
+                'lease_start' => $validated['lease_start'] ?? null,
+                'lease_end' => $validated['lease_end'] ?? null,
+                'id_document' => $validated['id_document'] ?? null,
+                'emergency_contact' => $validated['emergency_contact_name'] ?? null,
+                'emergency_phone' => $validated['emergency_contact_phone'] ?? null,
+                'notes' => $validated['notes'] ?? null,
+            ]);
+        }
 
         toast_success('Owner updated successfully!');
         return redirect()->route('owners.show', $owner);
@@ -151,14 +234,23 @@ class OwnerController extends Controller
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(Owner $owner)
+    public function destroy(User $owner)
     {
-        // Check if owner has apartments
-        if ($owner->apartments()->count() > 0) {
-            toast_error('Cannot delete owner with associated apartments. Please reassign or remove apartments first.');
-            return redirect()->route('owners.index');
+        // Remove owner from apartment if assigned
+        if ($owner->ownerProfile && $owner->ownerProfile->apartment_id) {
+            $apartment = Apartment::find($owner->ownerProfile->apartment_id);
+            if ($apartment) {
+                $apartment->update([
+                    'owner_id' => null,
+                    'status' => 'vacant'
+                ]);
+            }
         }
 
+        // Delete owner profile and user
+        if ($owner->ownerProfile) {
+            $owner->ownerProfile->delete();
+        }
         $owner->delete();
 
         toast_success('Owner deleted successfully!');

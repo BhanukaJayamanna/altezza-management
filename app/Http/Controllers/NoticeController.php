@@ -100,15 +100,15 @@ class NoticeController extends Controller
     }
 
     /**
-     * Tenant-specific methods
+     * Owner-specific methods
      */
-    public function tenantIndex()
+    public function ownerIndex()
     {
         $notices = Notice::where('published_at', '<=', now())
             ->with('creator')
             ->latest('published_at')
             ->paginate(15);
 
-        return view('tenant.notices.index', compact('notices'));
+        return view('owner.notices.index', compact('notices'));
     }
 }

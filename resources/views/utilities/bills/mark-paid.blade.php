@@ -67,15 +67,15 @@
                             </div>
                             <div>
                                 <span class="font-medium">Total Amount:</span> 
-                                <span class="text-lg font-semibold">${{ number_format($utilityBill->total_amount, 2) }}</span>
+                                <span class="text-lg font-semibold">LKR {{ number_format($utilityBill->total_amount, 2) }}</span>
                             </div>
                             <div>
                                 <span class="font-medium">Amount Paid:</span> 
-                                ${{ number_format($utilityBill->paid_amount, 2) }}
+                                LKR {{ number_format($utilityBill->paid_amount, 2) }}
                             </div>
                             <div>
                                 <span class="font-medium">Remaining Balance:</span> 
-                                <span class="text-lg font-semibold text-red-600">${{ number_format($utilityBill->remaining_amount, 2) }}</span>
+                                <span class="text-lg font-semibold text-red-600">LKR {{ number_format($utilityBill->remaining_amount, 2) }}</span>
                             </div>
                             <div>
                                 <span class="font-medium">Due Date:</span> 
@@ -118,7 +118,7 @@
                                            placeholder="0.00">
                                 </div>
                                 <p class="mt-1 text-xs text-gray-500">
-                                    Maximum: ${{ number_format($utilityBill->remaining_amount, 2) }}
+                                    Maximum: LKR {{ number_format($utilityBill->remaining_amount, 2) }}
                                 </p>
                                 @error('amount')
                                     <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
@@ -191,13 +191,13 @@
                                     <div class="mt-2 text-sm text-blue-700">
                                         <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
                                             <div>
-                                                <strong>Bill Total:</strong> ${{ number_format($utilityBill->total_amount, 2) }}
+                                                <strong>Bill Total:</strong> LKR {{ number_format($utilityBill->total_amount, 2) }}
                                             </div>
                                             <div>
-                                                <strong>Already Paid:</strong> ${{ number_format($utilityBill->paid_amount, 2) }}
+                                                <strong>Already Paid:</strong> LKR {{ number_format($utilityBill->paid_amount, 2) }}
                                             </div>
                                             <div>
-                                                <strong>Remaining:</strong> ${{ number_format($utilityBill->remaining_amount, 2) }}
+                                                <strong>Remaining:</strong> LKR {{ number_format($utilityBill->remaining_amount, 2) }}
                                             </div>
                                         </div>
                                         <p class="mt-2">

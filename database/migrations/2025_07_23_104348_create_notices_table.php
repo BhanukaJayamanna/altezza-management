@@ -17,7 +17,7 @@ return new class extends Migration
             $table->text('content');
             $table->enum('type', ['general', 'payment', 'maintenance', 'emergency', 'event'])->default('general');
             $table->enum('priority', ['low', 'medium', 'high', 'urgent'])->default('medium');
-            $table->enum('target_audience', ['all', 'tenants', 'owners', 'specific'])->default('all');
+            $table->enum('target_audience', ['all', 'owners', 'owners', 'specific'])->default('all');
             $table->json('specific_recipients')->nullable(); // JSON array of user IDs if target is 'specific'
             $table->foreignId('created_by')->constrained('users');
             $table->date('publish_date')->default(now());

@@ -14,7 +14,7 @@ class MaintenanceRequestController extends Controller
      */
     public function index()
     {
-        $maintenanceRequests = MaintenanceRequest::with(['apartment', 'tenant'])
+        $maintenanceRequests = MaintenanceRequest::with(['apartment', 'owner'])
             ->latest()
             ->paginate(15);
 
@@ -26,7 +26,7 @@ class MaintenanceRequestController extends Controller
      */
     public function create()
     {
-        $apartments = Apartment::with('tenant')->get();
+        $apartments = Apartment::with('owner')->get();
         return view('maintenance-requests.create', compact('apartments'));
     }
 
@@ -43,7 +43,7 @@ class MaintenanceRequestController extends Controller
             'category' => 'required|string|max:100',
         ]);
 
-        $validated['tenant_id'] = Auth::id();
+        $validated['owner_id'] = Auth::id();
         $validated['status'] = 'pending';
 
         MaintenanceRequest::create($validated);
@@ -57,7 +57,7 @@ class MaintenanceRequestController extends Controller
      */
     public function show(MaintenanceRequest $maintenanceRequest)
     {
-        $maintenanceRequest->load(['apartment', 'tenant']);
+        $maintenanceRequest->load(['apartment', 'owner']);
         return view('maintenance-requests.show', compact('maintenanceRequest'));
     }
 
@@ -66,7 +66,7 @@ class MaintenanceRequestController extends Controller
      */
     public function edit(MaintenanceRequest $maintenanceRequest)
     {
-        $apartments = Apartment::with('tenant')->get();
+        $apartments = Apartment::with('owner')->get();
         return view('maintenance-requests.edit', compact('maintenanceRequest', 'apartments'));
     }
 
@@ -102,9 +102,9 @@ class MaintenanceRequestController extends Controller
     }
 
     /**
-     * Tenant-specific methods
+     * Owner-specific methods
      */
-    public function tenantIndex()
+    public function ownerIndex()
     {
         $user = Auth::user();
         $maintenanceRequests = $user->maintenanceRequests()
@@ -112,28 +112,28 @@ class MaintenanceRequestController extends Controller
             ->latest()
             ->paginate(15);
 
-        return view('tenant.maintenance-requests.index', compact('maintenanceRequests'));
+        return view('owner.maintenance-requests.index', compact('maintenanceRequests'));
     }
 
-    public function tenantCreate()
+    public function ownerCreate()
     {
         $user = Auth::user();
-        $tenant = $user->tenant;
+        $owner = $user->owner;
         
-        if (!$tenant || !$tenant->apartment) {
+        if (!$owner || !$owner->apartment) {
             toast_error('You must be assigned to an apartment to create maintenance requests.');
             return redirect()->route('dashboard');
         }
 
-        return view('tenant.maintenance-requests.create', compact('tenant'));
+        return view('owner.maintenance-requests.create', compact('owner'));
     }
 
-    public function tenantStore(Request $request)
+    public function ownerStore(Request $request)
     {
         $user = Auth::user();
-        $tenant = $user->tenant;
+        $owner = $user->owner;
         
-        if (!$tenant || !$tenant->apartment) {
+        if (!$owner || !$owner->apartment) {
             toast_error('You must be assigned to an apartment to create maintenance requests.');
             return redirect()->route('dashboard');
         }
@@ -145,24 +145,24 @@ class MaintenanceRequestController extends Controller
             'category' => 'required|string|max:100',
         ]);
 
-        $validated['apartment_id'] = $tenant->apartment_id;
-        $validated['tenant_id'] = $user->id;
+        $validated['apartment_id'] = $owner->apartment_id;
+        $validated['owner_id'] = $user->id;
         $validated['status'] = 'pending';
 
         MaintenanceRequest::create($validated);
 
         toast_success('Maintenance request submitted successfully!');
-        return redirect()->route('tenant.maintenance-requests');
+        return redirect()->route('owner.maintenance-requests');
     }
 
-    public function tenantShow(MaintenanceRequest $maintenanceRequest)
+    public function ownerShow(MaintenanceRequest $maintenanceRequest)
     {
-        // Ensure tenant can only view their own requests
-        if ($maintenanceRequest->tenant_id !== Auth::id()) {
+        // Ensure owner can only view their own requests
+        if ($maintenanceRequest->owner_id !== Auth::id()) {
             abort(403);
         }
 
         $maintenanceRequest->load(['apartment']);
-        return view('tenant.maintenance-requests.show', compact('maintenanceRequest'));
+        return view('owner.maintenance-requests.show', compact('maintenanceRequest'));
     }
 }

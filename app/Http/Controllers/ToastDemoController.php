@@ -28,7 +28,7 @@ class ToastDemoController extends Controller
                 'Settings updated successfully!',
                 'Rent payment processed successfully.',
                 'Maintenance request completed.',
-                'Invoice sent to tenant.',
+                'Invoice sent to owner.',
                 'Property added to system.'
             ],
             'error' => [
@@ -47,10 +47,10 @@ class ToastDemoController extends Controller
             ],
             'info' => [
                 'System backup completed at 2:00 AM.',
-                'New tenant application received.',
+                'New owner application received.',
                 'Monthly report is ready for download.',
                 'Maintenance scheduled for next week.',
-                'Rent reminder sent to all tenants.'
+                'Rent reminder sent to all owners.'
             ]
         ];
         

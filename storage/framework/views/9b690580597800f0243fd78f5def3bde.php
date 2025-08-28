@@ -94,12 +94,12 @@ endif;
 unset($__errorArgs, $__bag); ?>
                                 </div>
 
-                                <!-- Block -->
+                                <!-- Assessment No -->
                                 <div>
-                                    <label for="block" class="block font-medium text-sm text-gray-700 mb-2">
-                                        Block
+                                    <label for="assessment_no" class="block font-medium text-sm text-gray-700 mb-2">
+                                        Assessment No
                                     </label>
-                                    <input id="block" class="block mt-1 w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 <?php $__errorArgs = ['block'];
+                                    <input id="assessment_no" class="block mt-1 w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 <?php $__errorArgs = ['assessment_no'];
 $__bag = $errors->getBag($__errorArgs[1] ?? 'default');
 if ($__bag->has($__errorArgs[0])) :
 if (isset($message)) { $__messageOriginal = $message; }
@@ -107,34 +107,8 @@ $message = $__bag->first($__errorArgs[0]); ?> border-red-500 <?php unset($messag
 if (isset($__messageOriginal)) { $message = $__messageOriginal; }
 endif;
 unset($__errorArgs, $__bag); ?>" 
-                                           type="text" name="block" value="<?php echo e(old('block', $apartment->block)); ?>" />
-                                    <?php $__errorArgs = ['block'];
-$__bag = $errors->getBag($__errorArgs[1] ?? 'default');
-if ($__bag->has($__errorArgs[0])) :
-if (isset($message)) { $__messageOriginal = $message; }
-$message = $__bag->first($__errorArgs[0]); ?>
-                                        <p class="mt-2 text-sm text-red-600"><?php echo e($message); ?></p>
-                                    <?php unset($message);
-if (isset($__messageOriginal)) { $message = $__messageOriginal; }
-endif;
-unset($__errorArgs, $__bag); ?>
-                                </div>
-
-                                <!-- Floor -->
-                                <div>
-                                    <label for="floor" class="block font-medium text-sm text-gray-700 mb-2">
-                                        Floor
-                                    </label>
-                                    <input id="floor" class="block mt-1 w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 <?php $__errorArgs = ['floor'];
-$__bag = $errors->getBag($__errorArgs[1] ?? 'default');
-if ($__bag->has($__errorArgs[0])) :
-if (isset($message)) { $__messageOriginal = $message; }
-$message = $__bag->first($__errorArgs[0]); ?> border-red-500 <?php unset($message);
-if (isset($__messageOriginal)) { $message = $__messageOriginal; }
-endif;
-unset($__errorArgs, $__bag); ?>" 
-                                           type="number" name="floor" value="<?php echo e(old('floor', $apartment->floor)); ?>" min="0" />
-                                    <?php $__errorArgs = ['floor'];
+                                           type="text" name="assessment_no" value="<?php echo e(old('assessment_no', $apartment->assessment_no)); ?>" />
+                                    <?php $__errorArgs = ['assessment_no'];
 $__bag = $errors->getBag($__errorArgs[1] ?? 'default');
 if ($__bag->has($__errorArgs[0])) :
 if (isset($message)) { $__messageOriginal = $message; }
@@ -235,10 +209,42 @@ unset($__errorArgs, $__bag); ?>
                         <div class="mb-8">
                             <h3 class="text-lg font-semibold text-gray-900 mb-4">Ownership & Rental Information</h3>
                             <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                <!-- Management Corporation -->
+                                <div>
+                                    <label for="management_corporation_id" class="block font-medium text-sm text-gray-700 mb-2">
+                                        Management Corporation <span class="text-red-500">*</span>
+                                    </label>
+                                    <select id="management_corporation_id" name="management_corporation_id" required class="block mt-1 w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 <?php $__errorArgs = ['management_corporation_id'];
+$__bag = $errors->getBag($__errorArgs[1] ?? 'default');
+if ($__bag->has($__errorArgs[0])) :
+if (isset($message)) { $__messageOriginal = $message; }
+$message = $__bag->first($__errorArgs[0]); ?> border-red-500 <?php unset($message);
+if (isset($__messageOriginal)) { $message = $__messageOriginal; }
+endif;
+unset($__errorArgs, $__bag); ?>">
+                                        <option value="">Select Management Corporation</option>
+                                        <?php $__currentLoopData = $managementCorporations; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $corp): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                                            <option value="<?php echo e($corp->id); ?>" <?php echo e(old('management_corporation_id', $apartment->management_corporation_id) == $corp->id ? 'selected' : ''); ?>>
+                                                <?php echo e($corp->name); ?> (<?php echo e($corp->email); ?>)
+                                            </option>
+                                        <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
+                                    </select>
+                                    <?php $__errorArgs = ['management_corporation_id'];
+$__bag = $errors->getBag($__errorArgs[1] ?? 'default');
+if ($__bag->has($__errorArgs[0])) :
+if (isset($message)) { $__messageOriginal = $message; }
+$message = $__bag->first($__errorArgs[0]); ?>
+                                        <p class="mt-2 text-sm text-red-600"><?php echo e($message); ?></p>
+                                    <?php unset($message);
+if (isset($__messageOriginal)) { $message = $__messageOriginal; }
+endif;
+unset($__errorArgs, $__bag); ?>
+                                </div>
+
                                 <!-- Owner -->
                                 <div>
-                                    <label for="owner_id" class="block font-medium text-sm text-gray-700 mb-2">
-                                        Owner
+                                    <label for "owner_id" class="block font-medium text-sm text-gray-700 mb-2">
+                                        Current Owner
                                     </label>
                                     <select id="owner_id" name="owner_id" class="block mt-1 w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 <?php $__errorArgs = ['owner_id'];
 $__bag = $errors->getBag($__errorArgs[1] ?? 'default');
@@ -251,7 +257,11 @@ unset($__errorArgs, $__bag); ?>">
                                         <option value="">Select Owner</option>
                                         <?php $__currentLoopData = $owners; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $owner): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
                                             <option value="<?php echo e($owner->id); ?>" <?php echo e(old('owner_id', $apartment->owner_id) == $owner->id ? 'selected' : ''); ?>>
-                                                <?php echo e($owner->name); ?> (<?php echo e($owner->email); ?>)
+                                                <?php if($owner->user): ?>
+                                                    <?php echo e($owner->user->name); ?> (<?php echo e($owner->user->email); ?>)
+                                                <?php else: ?>
+                                                    Owner #<?php echo e($owner->id); ?> (No user linked)
+                                                <?php endif; ?>
                                             </option>
                                         <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
                                     </select>
@@ -267,42 +277,10 @@ endif;
 unset($__errorArgs, $__bag); ?>
                                 </div>
 
-                                <!-- Tenant -->
-                                <div>
-                                    <label for "tenant_id" class="block font-medium text-sm text-gray-700 mb-2">
-                                        Current Tenant
-                                    </label>
-                                    <select id="tenant_id" name="tenant_id" class="block mt-1 w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 <?php $__errorArgs = ['tenant_id'];
-$__bag = $errors->getBag($__errorArgs[1] ?? 'default');
-if ($__bag->has($__errorArgs[0])) :
-if (isset($message)) { $__messageOriginal = $message; }
-$message = $__bag->first($__errorArgs[0]); ?> border-red-500 <?php unset($message);
-if (isset($__messageOriginal)) { $message = $__messageOriginal; }
-endif;
-unset($__errorArgs, $__bag); ?>">
-                                        <option value="">Select Tenant</option>
-                                        <?php $__currentLoopData = $tenants; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $tenant): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
-                                            <option value="<?php echo e($tenant->id); ?>" <?php echo e(old('tenant_id', $apartment->tenant_id) == $tenant->id ? 'selected' : ''); ?>>
-                                                <?php echo e($tenant->name); ?> (<?php echo e($tenant->email); ?>)
-                                            </option>
-                                        <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
-                                    </select>
-                                    <?php $__errorArgs = ['tenant_id'];
-$__bag = $errors->getBag($__errorArgs[1] ?? 'default');
-if ($__bag->has($__errorArgs[0])) :
-if (isset($message)) { $__messageOriginal = $message; }
-$message = $__bag->first($__errorArgs[0]); ?>
-                                        <p class="mt-2 text-sm text-red-600"><?php echo e($message); ?></p>
-                                    <?php unset($message);
-if (isset($__messageOriginal)) { $message = $__messageOriginal; }
-endif;
-unset($__errorArgs, $__bag); ?>
-                                </div>
-
                                 <!-- Rent Amount -->
                                 <div>
                                     <label for="rent_amount" class="block font-medium text-sm text-gray-700 mb-2">
-                                        Monthly Rent ($)
+                                        Monthly Rent (LKR)
                                     </label>
                                     <input id="rent_amount" class="block mt-1 w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 <?php $__errorArgs = ['rent_amount'];
 $__bag = $errors->getBag($__errorArgs[1] ?? 'default');
@@ -368,19 +346,26 @@ unset($__errorArgs, $__bag); ?>
                                 </a>
                             </div>
 
-                            <!-- Delete Button -->
-                            <form method="POST" action="<?php echo e(route('apartments.destroy', $apartment)); ?>" class="inline" onsubmit="return confirm('Are you sure you want to delete this apartment? This action cannot be undone.');">
-                                <?php echo csrf_field(); ?>
-                                <?php echo method_field('DELETE'); ?>
-                                <button type="submit" class="inline-flex items-center px-4 py-2 bg-red-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-red-700 focus:bg-red-700 active:bg-red-800 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 transition ease-in-out duration-150">
-                                    <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
-                                    </svg>
-                                    Delete Apartment
-                                </button>
-                            </form>
+                            <!-- Delete Button - Separate Form -->
+                            <div>
+                                <!-- Delete button will be outside the update form -->
+                            </div>
                         </div>
                     </form>
+                    
+                    <!-- Delete Form - Outside the Update Form -->
+                    <div class="mt-4 pt-4 border-t border-gray-200 flex justify-end">
+                        <form method="POST" action="<?php echo e(route('apartments.destroy', $apartment)); ?>" class="inline" onsubmit="return confirm('Are you sure you want to delete this apartment? This action cannot be undone.');">
+                            <?php echo csrf_field(); ?>
+                            <?php echo method_field('DELETE'); ?>
+                            <button type="submit" class="inline-flex items-center px-4 py-2 bg-red-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-red-700 focus:bg-red-700 active:bg-red-800 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 transition ease-in-out duration-150">
+                                <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
+                                </svg>
+                                Delete Apartment
+                            </button>
+                        </form>
+                    </div>
                 </div>
             </div>
         </div>

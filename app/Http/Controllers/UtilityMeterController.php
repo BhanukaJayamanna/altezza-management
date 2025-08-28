@@ -60,7 +60,7 @@ class UtilityMeterController extends Controller
     public function show(UtilityMeter $meter): View
     {
         $meter->load([
-            'apartment.currentLease.tenant', 
+            'apartment.currentLease.owner', 
             'readings' => function($query) {
                 $query->orderBy('reading_date', 'desc')->take(10);
             }

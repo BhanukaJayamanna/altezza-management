@@ -9,7 +9,8 @@ class Payment extends Model
 {
     protected $fillable = [
         'invoice_id',
-        'tenant_id',
+        'rooftop_reservation_id',
+        'owner_id',
         'amount',
         'payment_date',
         'method',
@@ -34,11 +35,19 @@ class Payment extends Model
     }
 
     /**
-     * Get the tenant who made this payment
+     * Get the owner who made this payment
+     */
+    public function owner(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'owner_id');
+    }
+
+    /**
+     * Backward compatibility alias for owner
      */
     public function tenant(): BelongsTo
     {
-        return $this->belongsTo(User::class, 'tenant_id');
+        return $this->owner();
     }
 
     /**
@@ -47,6 +56,14 @@ class Payment extends Model
     public function recordedBy(): BelongsTo
     {
         return $this->belongsTo(User::class, 'recorded_by');
+    }
+
+    /**
+     * Get the rooftop reservation this payment belongs to
+     */
+    public function rooftopReservation(): BelongsTo
+    {
+        return $this->belongsTo(RooftopReservation::class);
     }
 
     /**

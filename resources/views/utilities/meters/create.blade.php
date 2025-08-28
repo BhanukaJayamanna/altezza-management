@@ -43,7 +43,7 @@
                                 <option value="">Select Apartment</option>
                                 @foreach($apartments as $apartment)
                                     <option value="{{ $apartment->id }}" {{ old('apartment_id') == $apartment->id ? 'selected' : '' }}>
-                                        {{ $apartment->number }} - {{ $apartment->type }} ({{ $apartment->block }})
+                                        {{ $apartment->number }} - {{ $apartment->type }} ({{ $apartment->assessment_no }})
                                     </option>
                                 @endforeach
                             </select>

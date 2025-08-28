@@ -55,19 +55,19 @@
                                 <span class="font-medium">Invoice:</span> {{ $payment->invoice->invoice_number }}
                             </div>
                             <div>
-                                <span class="font-medium">Tenant:</span> {{ $payment->invoice->tenant->name }}
+                                <span class="font-medium">Owner:</span> {{ $payment->invoice->owner->name }}
                             </div>
                             <div>
                                 <span class="font-medium">Apartment:</span> {{ $payment->invoice->apartment->number }}
                             </div>
                             <div>
-                                <span class="font-medium">Invoice Total:</span> ${{ number_format($payment->invoice->total_amount, 2) }}
+                                <span class="font-medium">Invoice Total:</span> LKR {{ number_format($payment->invoice->total_amount, 2) }}
                             </div>
                             <div>
-                                <span class="font-medium">Total Paid:</span> ${{ number_format($payment->invoice->payments()->where('status', 'completed')->sum('amount'), 2) }}
+                                <span class="font-medium">Total Paid:</span> LKR {{ number_format($payment->invoice->payments()->where('status', 'completed')->sum('amount'), 2) }}
                             </div>
                             <div>
-                                <span class="font-medium">Remaining:</span> ${{ number_format($payment->invoice->total_amount - $payment->invoice->payments()->where('status', 'completed')->sum('amount'), 2) }}
+                                <span class="font-medium">Remaining:</span> LKR {{ number_format($payment->invoice->total_amount - $payment->invoice->payments()->where('status', 'completed')->sum('amount'), 2) }}
                             </div>
                         </div>
                     </div>
@@ -81,7 +81,7 @@
                             <div class="md:col-span-2">
                                 <label class="block text-sm font-medium text-gray-700">Invoice</label>
                                 <div class="mt-1 p-3 bg-gray-100 border border-gray-300 rounded-md">
-                                    {{ $payment->invoice->invoice_number }} - {{ $payment->invoice->tenant->name }} ({{ $payment->invoice->apartment->number }})
+                                    {{ $payment->invoice->invoice_number }} - {{ $payment->invoice->owner->name }} ({{ $payment->invoice->apartment->number }})
                                     <span class="text-xs text-gray-500 ml-2">(Invoice cannot be changed)</span>
                                 </div>
                             </div>
@@ -237,7 +237,7 @@
                     const warning = document.createElement('div');
                     warning.id = 'status-warning';
                     warning.className = 'mt-2 p-2 bg-yellow-100 border border-yellow-400 text-yellow-700 rounded text-sm';
-                    warning.innerHTML = '<strong>Warning:</strong> Changing status to ' + status + ' may affect invoice calculations and tenant records.';
+                    warning.innerHTML = '<strong>Warning:</strong> Changing status to ' + status + ' may affect invoice calculations and owner records.';
                     this.parentNode.appendChild(warning);
                 }
             } else {

@@ -94,7 +94,7 @@
                             </div>
                             <div class="flex justify-between">
                                 <dt class="text-sm font-medium text-gray-500">Amount:</dt>
-                                <dd class="text-lg font-bold text-gray-900">₹{{ number_format($voucher->amount, 2) }}</dd>
+                                <dd class="text-lg font-bold text-gray-900">LKR {{ number_format($voucher->amount, 2) }}</dd>
                             </div>
                             @if($voucher->apartment)
                                 <div class="flex justify-between">

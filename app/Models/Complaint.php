@@ -9,15 +9,14 @@ class Complaint extends Model
 {
     protected $fillable = [
         'apartment_id',
-        'tenant_id',
-        'title',
+        'owner_id',
+        'subject',
         'description',
         'priority',
         'status',
-        'category',
         'assigned_to',
         'resolved_at',
-        'resolution_notes',
+        'notes',
     ];
 
     protected $casts = [
@@ -30,9 +29,15 @@ class Complaint extends Model
         return $this->belongsTo(Apartment::class);
     }
 
+    public function owner(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'owner_id');
+    }
+
+    // Backward compatibility alias
     public function tenant(): BelongsTo
     {
-        return $this->belongsTo(User::class, 'tenant_id');
+        return $this->owner();
     }
 
     public function assignedTo(): BelongsTo

@@ -124,7 +124,7 @@
                             @foreach($meters as $meter)
                             <div class="meter-card bg-gray-50 border border-gray-200 rounded-lg p-4" 
                                  data-utility="{{ $meter->type }}" 
-                                 data-block="{{ $meter->apartment->block }}">
+                                 data-assessment-no="{{ $meter->apartment->assessment_no }}">
                                 
                                 <!-- Meter Header -->
                                 <div class="flex items-center justify-between mb-4">
@@ -132,7 +132,7 @@
                                         <h4 class="font-medium text-gray-900">
                                             {{ $meter->apartment->number }}
                                         </h4>
-                                        <p class="text-sm text-gray-500">{{ $meter->apartment->block }} - {{ ucfirst($meter->type) }}</p>
+                                        <p class="text-sm text-gray-500">{{ $meter->apartment->assessment_no }} - {{ ucfirst($meter->type) }}</p>
                                     </div>
                                     <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium 
                                         {{ $meter->type === 'electricity' ? 'bg-yellow-100 text-yellow-800' : 

@@ -56,16 +56,10 @@
                             <label class="block text-sm font-medium text-gray-700 mb-1">Type</label>
                             <p class="text-gray-900"><?php echo e(strtoupper($apartment->type)); ?></p>
                         </div>
-                        <?php if($apartment->block): ?>
+                        <?php if($apartment->assessment_no): ?>
                         <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-1">Block</label>
-                            <p class="text-gray-900"><?php echo e($apartment->block); ?></p>
-                        </div>
-                        <?php endif; ?>
-                        <?php if($apartment->floor): ?>
-                        <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-1">Floor</label>
-                            <p class="text-gray-900"><?php echo e($apartment->floor); ?></p>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Assessment No</label>
+                            <p class="text-gray-900"><?php echo e($apartment->assessment_no); ?></p>
                         </div>
                         <?php endif; ?>
                         <?php if($apartment->area): ?>
@@ -91,61 +85,51 @@
             </div>
 
             <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                <!-- Owner Information -->
+                <!-- Management Corporation Information -->
                 <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg">
                     <div class="p-6 bg-white border-b border-gray-200">
-                        <h3 class="text-lg font-semibold text-gray-900 mb-4">Owner Information</h3>
-                        <?php if($apartment->owner): ?>
+                        <h3 class="text-lg font-semibold text-gray-900 mb-4">Management Corporation</h3>
+                        <?php if($apartment->managementCorporation): ?>
                         <div class="space-y-3">
                             <div>
-                                <label class="block text-sm font-medium text-gray-700 mb-1">Name</label>
-                                <p class="text-gray-900"><?php echo e($apartment->owner->name); ?></p>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">Corporation Name</label>
+                                <p class="text-gray-900"><?php echo e($apartment->managementCorporation->name); ?></p>
                             </div>
                             <div>
                                 <label class="block text-sm font-medium text-gray-700 mb-1">Email</label>
-                                <p class="text-gray-900"><?php echo e($apartment->owner->email); ?></p>
+                                <p class="text-gray-900"><?php echo e($apartment->managementCorporation->email); ?></p>
                             </div>
-                            <?php if($apartment->owner->phone): ?>
+                            <?php if($apartment->managementCorporation->phone): ?>
                             <div>
                                 <label class="block text-sm font-medium text-gray-700 mb-1">Phone</label>
-                                <p class="text-gray-900"><?php echo e($apartment->owner->phone); ?></p>
+                                <p class="text-gray-900"><?php echo e($apartment->managementCorporation->phone); ?></p>
                             </div>
                             <?php endif; ?>
                         </div>
                         <?php else: ?>
-                        <p class="text-gray-500">No owner assigned</p>
+                        <p class="text-gray-500">No management corporation assigned</p>
                         <?php endif; ?>
                     </div>
                 </div>
 
-                <!-- Current Tenant Information -->
+                <!-- Current Owner Information -->
                 <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg">
                     <div class="p-6 bg-white border-b border-gray-200">
-                        <h3 class="text-lg font-semibold text-gray-900 mb-4">Current Tenant</h3>
-                        <?php if($apartment->tenant): ?>
+                        <h3 class="text-lg font-semibold text-gray-900 mb-4">Current Owner</h3>
+                        <?php if($apartment->currentOwner && $apartment->currentOwner->user): ?>
                         <div class="space-y-3">
                             <div>
                                 <label class="block text-sm font-medium text-gray-700 mb-1">Name</label>
-                                <p class="text-gray-900"><?php echo e($apartment->tenant->name); ?></p>
+                                <p class="text-gray-900"><?php echo e($apartment->currentOwner->user->name); ?></p>
                             </div>
                             <div>
                                 <label class="block text-sm font-medium text-gray-700 mb-1">Email</label>
-                                <p class="text-gray-900"><?php echo e($apartment->tenant->email); ?></p>
+                                <p class="text-gray-900"><?php echo e($apartment->currentOwner->user->email); ?></p>
                             </div>
-                            <?php if($apartment->tenant->phone): ?>
+                            <?php if($apartment->currentOwner->user->phone): ?>
                             <div>
                                 <label class="block text-sm font-medium text-gray-700 mb-1">Phone</label>
-                                <p class="text-gray-900"><?php echo e($apartment->tenant->phone); ?></p>
-                            </div>
-                            <?php endif; ?>
-                            <?php if($apartment->tenantProfile && $apartment->tenantProfile->lease_start): ?>
-                            <div>
-                                <label class="block text-sm font-medium text-gray-700 mb-1">Lease Period</label>
-                                <p class="text-gray-900">
-                                    <?php echo e($apartment->tenantProfile->lease_start->format('M d, Y')); ?> - 
-                                    <?php echo e($apartment->tenantProfile->lease_end ? $apartment->tenantProfile->lease_end->format('M d, Y') : 'N/A'); ?>
-
-                                </p>
+                                <p class="text-gray-900"><?php echo e($apartment->currentOwner->user->phone); ?></p>
                             </div>
                             <?php endif; ?>
                         </div>
@@ -154,7 +138,7 @@
                             <svg class="mx-auto h-8 w-8 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path>
                             </svg>
-                            <p class="mt-2 text-sm text-gray-500">No tenant assigned</p>
+                            <p class="mt-2 text-sm text-gray-500">No owner assigned</p>
                         </div>
                         <?php endif; ?>
                     </div>

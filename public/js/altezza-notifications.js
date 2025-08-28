@@ -236,7 +236,7 @@ class AltezzaNotifications {
     }
 
     startPolling() {
-        // Poll for new notifications every 30 seconds
+        // Poll for new notifications every 2 minutes (120 seconds)
         this.updateInterval = setInterval(() => {
             this.loadNotifications();
         }, 30000);

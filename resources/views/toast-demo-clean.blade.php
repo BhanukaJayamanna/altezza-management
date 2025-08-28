@@ -318,7 +318,7 @@
             altezzaToast.show({
                 type: 'success',
                 title: 'Payment Received',
-                message: 'Rent payment of Rs. 25,000 received from Apartment 12A',
+                message: 'Rent payment of LKR 25,000 received from Apartment 12A',
                 timeout: 6000,
                 action: {
                     label: 'View Receipt',

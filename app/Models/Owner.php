@@ -4,34 +4,43 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Carbon\Carbon;
 
 class Owner extends Model
 {
     use HasFactory;
 
+    protected $table = 'owners'; // Use the owners table
+
     protected $fillable = [
-        'name',
-        'email',
-        'phone',
-        'address',
-        'id_document',
-        'bank_details',
+        'user_id',
+        'apartment_id',
         'status',
+        'id_document',
+        'emergency_contact',
+        'emergency_phone',
+        'notes',
     ];
 
     protected $casts = [
-        'bank_details' => 'array',
+        // Remove lease date casts as they're now in the Lease model
     ];
 
     // Relationships
-    public function apartments()
+    public function user()
     {
-        return $this->hasMany(Apartment::class);
+        return $this->belongsTo(User::class);
     }
 
-    public function leases()
+    public function apartment()
     {
-        return $this->hasMany(Lease::class);
+        return $this->belongsTo(Apartment::class, 'apartment_id');
+    }
+
+    // Also add relationship for apartments owned by this owner
+    public function apartments()
+    {
+        return $this->hasMany(Apartment::class, 'owner_id');
     }
 
     // Helper methods
@@ -40,18 +49,35 @@ class Owner extends Model
         return $this->status === 'active';
     }
 
-    public function getTotalApartmentsAttribute()
+    public function hasMovedOut()
     {
-        return $this->apartments()->count();
+        return $this->status === 'moved_out';
     }
 
-    public function getOccupiedApartmentsAttribute()
+    public function isLeaseExpiring($days = 30)
     {
-        return $this->apartments()->where('status', 'occupied')->count();
+        if (!$this->lease_end) {
+            return false;
+        }
+        
+        return $this->lease_end->diffInDays(Carbon::now()) <= $days && $this->lease_end->isFuture();
     }
 
-    public function getVacantApartmentsAttribute()
+    public function isLeaseExpired()
     {
-        return $this->apartments()->where('status', 'vacant')->count();
+        if (!$this->lease_end) {
+            return false;
+        }
+        
+        return $this->lease_end->isPast();
+    }
+
+    public function getLeaseDurationAttribute()
+    {
+        if (!$this->lease_start || !$this->lease_end) {
+            return null;
+        }
+        
+        return $this->lease_start->diffInMonths($this->lease_end);
     }
 }

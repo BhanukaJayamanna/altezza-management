@@ -23,8 +23,8 @@ class UtilityBillController extends Controller
     public function index(Request $request): View
     {
         $query = UtilityBill::with([
-            'tenant', 
-            'apartment.currentLease.tenant', 
+            'owner', 
+            'apartment.currentLease.owner', 
             'meter'
         ]);
 
@@ -43,9 +43,9 @@ class UtilityBillController extends Controller
             $query->where('type', $request->type);
         }
 
-        // Filter by tenant
-        if ($request->filled('tenant_id')) {
-            $query->where('tenant_id', $request->tenant_id);
+        // Filter by owner
+        if ($request->filled('owner_id')) {
+            $query->where('owner_id', $request->owner_id);
         }
 
         // Filter by period
@@ -80,18 +80,18 @@ class UtilityBillController extends Controller
         ];
 
         // Get filter options
-        $tenants = \App\Models\User::whereHas('roles', function($q) {
-            $q->where('name', 'tenant');
+        $owners = \App\Models\User::whereHas('roles', function($q) {
+            $q->where('name', 'owner');
         })->orderBy('name')->get();
 
         $apartments = \App\Models\Apartment::orderBy('number')->get();
 
-        return view('utilities.bills.index', compact('bills', 'tenants', 'apartments', 'stats'));
+        return view('utilities.bills.index', compact('bills', 'owners', 'apartments', 'stats'));
     }
 
     public function create(): View
     {
-        $apartments = \App\Models\Apartment::with('currentLease.tenant')->orderBy('number')->get();
+        $apartments = \App\Models\Apartment::with('currentLease.owner')->orderBy('number')->get();
         $meters = \App\Models\UtilityMeter::where('status', 'active')->with('apartment')->orderBy('apartment_id')->orderBy('type')->get();
         
         return view('utilities.bills.create', compact('apartments', 'meters'));
@@ -110,8 +110,8 @@ class UtilityBillController extends Controller
             'notes' => 'nullable|string'
         ]);
 
-        // Get current tenant from apartment
-        $apartment = \App\Models\Apartment::with('currentLease.tenant')->find($validated['apartment_id']);
+        // Get current owner from apartment
+        $apartment = \App\Models\Apartment::with('currentLease.owner')->find($validated['apartment_id']);
         if (!$apartment || !$apartment->currentLease) {
             return back()->withErrors(['apartment_id' => 'Selected apartment has no active lease.'])->withInput();
         }
@@ -122,7 +122,7 @@ class UtilityBillController extends Controller
         
         // Prepare data for database
         $billData = [
-            'tenant_id' => $apartment->currentLease->tenant->id,
+            'owner_id' => $apartment->currentLease->owner->id,
             'apartment_id' => $validated['apartment_id'],
             'meter_id' => $validated['meter_id'],
             'reading_id' => null, // Manual bill, no reading
@@ -147,7 +147,7 @@ class UtilityBillController extends Controller
 
     public function show(UtilityBill $bill): View
     {
-        $bill->load(['tenant', 'apartment', 'meter', 'reading', 'payments.recordedBy']);
+        $bill->load(['owner', 'apartment', 'meter', 'reading', 'payments.recordedBy']);
 
         return view('utilities.bills.show', compact('bill'));
     }
@@ -160,7 +160,7 @@ class UtilityBillController extends Controller
             return redirect()->route('utility-bills.show', $bill);
         }
 
-        $apartments = \App\Models\Apartment::with('currentLease.tenant')->orderBy('number')->get();
+        $apartments = \App\Models\Apartment::with('currentLease.owner')->orderBy('number')->get();
         $meters = \App\Models\UtilityMeter::where('status', 'active')->with('apartment')->orderBy('apartment_id')->orderBy('type')->get();
         
         return view('utilities.bills.edit', compact('bill', 'apartments', 'meters'));
@@ -185,8 +185,8 @@ class UtilityBillController extends Controller
             'notes' => 'nullable|string'
         ]);
 
-        // Get current tenant from apartment
-        $apartment = \App\Models\Apartment::with('currentLease.tenant')->find($validated['apartment_id']);
+        // Get current owner from apartment
+        $apartment = \App\Models\Apartment::with('currentLease.owner')->find($validated['apartment_id']);
         if (!$apartment || !$apartment->currentLease) {
             return back()->withErrors(['apartment_id' => 'Selected apartment has no active lease.'])->withInput();
         }
@@ -197,7 +197,7 @@ class UtilityBillController extends Controller
         
         // Prepare data for database
         $billData = [
-            'tenant_id' => $apartment->currentLease->tenant->id,
+            'owner_id' => $apartment->currentLease->owner->id,
             'apartment_id' => $validated['apartment_id'],
             'meter_id' => $validated['meter_id'],
             'type' => $meter ? $meter->type : $bill->type, // Keep existing type if no meter
@@ -253,11 +253,11 @@ class UtilityBillController extends Controller
         }
     }
 
-    public function tenantIndex(Request $request): View
+    public function ownerIndex(Request $request): View
     {
-        $tenant = Auth::user();
+        $owner = Auth::user();
         
-        $query = UtilityBill::where('tenant_id', $tenant->id)
+        $query = UtilityBill::where('owner_id', $owner->id)
             ->with(['apartment', 'meter', 'payments']);
 
         // Filter by status
@@ -273,32 +273,32 @@ class UtilityBillController extends Controller
         $bills = $query->orderBy('created_at', 'desc')->paginate(15);
 
         // Get analytics
-        $analytics = $this->utilityBillService->getTenantUsageAnalytics($tenant->id, 12);
+        $analytics = $this->utilityBillService->getOwnerUsageAnalytics($owner->id, 12);
 
-        return view('utilities.bills.tenant-index', compact('bills', 'analytics'));
+        return view('utilities.bills.owner-index', compact('bills', 'analytics'));
     }
 
-    public function tenantShow(UtilityBill $utilityBill): View
+    public function ownerShow(UtilityBill $utilityBill): View
     {
-        // Ensure tenant can only view their own bills
-        if ($utilityBill->tenant_id !== Auth::id()) {
+        // Ensure owner can only view their own bills
+        if ($utilityBill->owner_id !== Auth::id()) {
             abort(403, 'Unauthorized access to utility bill.');
         }
 
         $utilityBill->load(['apartment', 'meter', 'reading', 'payments']);
 
-        return view('utilities.bills.tenant-show', compact('utilityBill'));
+        return view('utilities.bills.owner-show', compact('utilityBill'));
     }
 
     public function downloadPdf(UtilityBill $utilityBill)
     {
-        // Ensure tenant can only download their own bills
-        // Check if user is a tenant and can only access their own bills  
-        if ($utilityBill->tenant_id !== Auth::id()) {
+        // Ensure owner can only download their own bills
+        // Check if user is a owner and can only access their own bills  
+        if ($utilityBill->owner_id !== Auth::id()) {
             abort(403, 'Unauthorized access to utility bill.');
         }
 
-        $utilityBill->load(['tenant', 'apartment', 'meter', 'reading']);
+        $utilityBill->load(['owner', 'apartment', 'meter', 'reading']);
 
         // For now, return a view that can be printed as PDF
         // Later you can integrate with a PDF library like DomPDF
@@ -344,13 +344,13 @@ class UtilityBillController extends Controller
 
         // Top consumers
         $topConsumers = UtilityBill::selectRaw('
-            tenant_id,
+            owner_id,
             SUM(total_amount) as total_amount,
             SUM(units_used) as total_units,
             COUNT(*) as bills_count
         ')
-        ->with('tenant')
-        ->groupBy('tenant_id')
+        ->with('owner')
+        ->groupBy('owner_id')
         ->orderBy('total_amount', 'desc')
         ->take(10)
         ->get();
@@ -529,7 +529,7 @@ class UtilityBillController extends Controller
 
         $bills = UtilityBill::whereIn('id', $validated['bill_ids'])
             ->whereNull('invoice_id')
-            ->with(['apartment.currentLease', 'tenant'])
+            ->with(['apartment.currentLease', 'owner'])
             ->get();
 
         if ($bills->isEmpty()) {

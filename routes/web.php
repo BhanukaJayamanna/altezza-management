@@ -2,10 +2,10 @@
 
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\AnalyticsController;
 use App\Http\Controllers\ApartmentController;
+use App\Http\Controllers\ManagementCorporationController;
 use App\Http\Controllers\OwnerController;
-use App\Http\Controllers\TenantController;
-use App\Http\Controllers\LeaseController;
 use App\Http\Controllers\InvoiceController;
 use App\Http\Controllers\PaymentController;
 use App\Http\Controllers\PaymentVoucherController;
@@ -18,11 +18,42 @@ use App\Http\Controllers\ComplaintController;
 use App\Http\Controllers\NoticeController;
 use App\Http\Controllers\SettingController;
 use App\Http\Controllers\NotificationController;
+use App\Http\Controllers\RooftopReservationController;
 use App\Http\Controllers\ToastDemoController;
+use App\Http\Controllers\DocumentationController;
+use App\Http\Controllers\ManagementFeeController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
-    return redirect()->route('login');
+    return view('dashboard');
+});
+
+// Test route for analytics (temporary)
+Route::get('/analytics-test', function () {
+    // Return the analytics dashboard view with dummy data for testing
+    return view('analytics.dashboard', [
+        'analytics' => [
+            'financial_overview' => [
+                'total_revenue' => 125000,
+                'monthly_revenue' => 45000,
+                'payment_methods' => []
+            ],
+            'occupancy_analytics' => [
+                'occupancy_rate' => 85,
+                'total_apartments' => 50,
+                'occupied_apartments' => 42
+            ],
+            'owner_analytics' => [
+                'total_owners' => 42,
+                'owner_satisfaction' => (object)['avg_satisfaction' => 4.2]
+            ],
+            'maintenance_analytics' => [
+                'total_requests' => 8,
+                'pending_requests' => 3
+            ],
+            'monthly_trends' => []
+        ]
+    ]);
 });
 
 Route::get('/dashboard', [DashboardController::class, 'index'])
@@ -38,13 +69,8 @@ Route::middleware('auth')->group(function () {
     // Admin and Manager routes
     Route::middleware('role:admin,manager')->group(function () {
         Route::resource('apartments', ApartmentController::class);
+        Route::resource('management-corporations', ManagementCorporationController::class);
         Route::resource('owners', OwnerController::class);
-        Route::resource('tenants', TenantController::class);
-        Route::resource('leases', LeaseController::class);
-        
-        // Additional lease routes
-        Route::patch('leases/{lease}/terminate', [LeaseController::class, 'terminate'])->name('leases.terminate');
-        Route::patch('leases/{lease}/renew', [LeaseController::class, 'renew'])->name('leases.renew');
         
         Route::resource('invoices', InvoiceController::class);
         Route::resource('payments', PaymentController::class);
@@ -55,6 +81,10 @@ Route::middleware('auth')->group(function () {
         // Additional invoice routes
         Route::post('invoices/generate-monthly-rent', [InvoiceController::class, 'generateMonthlyRent'])->name('invoices.generate-monthly-rent');
         Route::patch('invoices/{invoice}/mark-paid', [InvoiceController::class, 'markPaid'])->name('invoices.mark-paid');
+        Route::get('invoices/{invoice}/download-pdf', [InvoiceController::class, 'downloadPdf'])->name('invoices.download-pdf');
+        Route::get('invoices/{invoice}/preview-pdf', [InvoiceController::class, 'previewPdf'])->name('invoices.preview-pdf');
+        Route::post('invoices/{invoice}/send-reminder', [InvoiceController::class, 'sendPaymentReminder'])->name('invoices.send-reminder');
+        Route::post('invoices/send-bulk-reminders', [InvoiceController::class, 'sendBulkPaymentReminders'])->name('invoices.send-bulk-reminders');
         
         // Additional payment routes
         Route::patch('payments/{payment}/approve', [PaymentController::class, 'approve'])->name('payments.approve');
@@ -119,6 +149,26 @@ Route::middleware('auth')->group(function () {
         Route::patch('complaints/{complaint}/resolve', [ComplaintController::class, 'resolve'])
             ->name('complaints.resolve');
         
+        // Management Fee Routes
+        Route::prefix('management-fees')->name('management-fees.')->group(function () {
+            Route::get('/', [ManagementFeeController::class, 'index'])->name('index');
+            Route::get('/settings', [ManagementFeeController::class, 'settings'])->name('settings');
+            Route::post('/settings', [ManagementFeeController::class, 'updateSettings'])->name('update-settings');
+            Route::get('/apartment/{apartment}/fees', [ManagementFeeController::class, 'apartmentFees'])->name('apartment-fees');
+            Route::post('/apartment/{apartment}/create', [ManagementFeeController::class, 'createForApartment'])->name('create-for-apartment');
+            Route::get('/quarterly-invoices', [ManagementFeeController::class, 'quarterlyInvoices'])->name('quarterly-invoices');
+            Route::post('/generate-quarterly', [ManagementFeeController::class, 'generateQuarterlyInvoices'])->name('generate-quarterly');
+            Route::post('/manual-entry', [ManagementFeeController::class, 'manualEntry'])->name('manual-entry');
+            Route::get('/invoice/{invoice}', [ManagementFeeController::class, 'showInvoice'])->name('show-invoice');
+            Route::get('/invoice/{invoice}/download', [ManagementFeeController::class, 'downloadInvoice'])->name('download-invoice');
+            Route::get('/invoice/{invoice}/print', [ManagementFeeController::class, 'printInvoice'])->name('print-invoice');
+            Route::patch('/invoice/{invoice}/mark-paid', [ManagementFeeController::class, 'markInvoicePaid'])->name('mark-invoice-paid');
+            Route::patch('/invoice/{invoice}/apply-discount', [ManagementFeeController::class, 'applyDiscount'])->name('apply-discount');
+            Route::post('/process-overdue', [ManagementFeeController::class, 'processOverdueInvoices'])->name('process-overdue');
+            Route::get('/export-quarterly', [ManagementFeeController::class, 'exportQuarterlyInvoices'])->name('export-quarterly');
+            Route::get('/analytics', [ManagementFeeController::class, 'analytics'])->name('analytics');
+        });
+        
         // Payment Voucher Routes
         Route::resource('vouchers', PaymentVoucherController::class);
         Route::patch('vouchers/{voucher}/approve', [PaymentVoucherController::class, 'approve'])
@@ -133,6 +183,40 @@ Route::middleware('auth')->group(function () {
     
     // Admin-only routes
     Route::middleware('role:admin')->group(function () {
+        // Analytics Dashboard (Admin/Manager Access)
+        Route::prefix('analytics')->name('analytics.')->group(function () {
+            Route::get('/', [AnalyticsController::class, 'index'])->name('index');
+            Route::get('/dashboard', [AnalyticsController::class, 'dashboard'])->name('legacy.dashboard');
+            
+            // Advanced Analytics
+            Route::get('/advanced', [AnalyticsController::class, 'getAdvancedAnalytics'])->name('advanced');
+            Route::get('/real-time-metrics', [AnalyticsController::class, 'getRealTimeMetrics'])->name('real-time');
+            Route::get('/chart-data', [AnalyticsController::class, 'getChartData'])->name('chart-data');
+            Route::get('/benchmarks', [AnalyticsController::class, 'getBenchmarks'])->name('benchmarks');
+            
+            // Specialized Pages
+            Route::get('/financial', [AnalyticsController::class, 'financial'])->name('financial');
+            Route::get('/occupancy', [AnalyticsController::class, 'occupancy'])->name('occupancy');
+            Route::get('/owners', [AnalyticsController::class, 'owners'])->name('owners');
+            Route::get('/maintenance', [AnalyticsController::class, 'maintenance'])->name('maintenance');
+            
+            // Reports and Exports
+            Route::post('/generate-report', [AnalyticsController::class, 'generateReport'])->name('generate-report');
+            Route::get('/export', [AnalyticsController::class, 'export'])->name('export');
+            
+            // Cache Management
+            Route::delete('/cache', [AnalyticsController::class, 'clearCache'])->name('clear-cache');
+        });
+        
+        // Documentation and Workflow Guides (Admin Only)
+        Route::prefix('documentation')->name('documentation.')->group(function () {
+            Route::get('/', [DocumentationController::class, 'index'])->name('index');
+            Route::get('/user-flow-pdf/preview', [DocumentationController::class, 'previewUserFlowPdf'])
+                ->name('user-flow-pdf.preview');
+            Route::get('/user-flow-pdf/download', [DocumentationController::class, 'generateUserFlowPdf'])
+                ->name('user-flow-pdf.download');
+        });
+
         // System Settings (Admin Only)
         Route::prefix('settings')->name('settings.')->group(function () {
             Route::get('/', [SettingController::class, 'index'])->name('index');
@@ -144,46 +228,78 @@ Route::middleware('auth')->group(function () {
         });
     });
     
-    // Tenant routes (limited access)
-    Route::middleware('role:tenant')->group(function () {
-        Route::get('my-apartment', [ApartmentController::class, 'show'])->name('tenant.apartment');
-        Route::get('my-invoices', [InvoiceController::class, 'index'])->name('tenant.invoices');
-        Route::get('my-invoices/{invoice}', [InvoiceController::class, 'show'])->name('tenant.invoices.show');
+    // Owner routes (limited access)
+    Route::middleware('role:owner')->group(function () {
+        Route::get('my-apartment', [ApartmentController::class, 'show'])->name('owner.apartment');
+        Route::get('my-invoices', [InvoiceController::class, 'index'])->name('owner.invoices');
+        Route::get('my-invoices/{invoice}', [InvoiceController::class, 'show'])->name('owner.invoices.show');
+        Route::get('my-invoices/{invoice}/download-pdf', [InvoiceController::class, 'downloadPdf'])->name('owner.invoices.download-pdf');
+        Route::get('my-invoices/{invoice}/preview-pdf', [InvoiceController::class, 'previewPdf'])->name('owner.invoices.preview-pdf');
         
-        // Tenant payment routes
-        Route::get('my-payments', [PaymentController::class, 'index'])->name('tenant.payments');
-        Route::get('my-payments/create', [PaymentController::class, 'create'])->name('tenant.payments.create');
-        Route::post('my-payments', [PaymentController::class, 'store'])->name('tenant.payments.store');
-        Route::get('my-payments/{payment}', [PaymentController::class, 'show'])->name('tenant.payments.show');
+        // Owner payment routes
+        Route::get('my-payments', [PaymentController::class, 'index'])->name('owner.payments');
+        Route::get('my-payments/create', [PaymentController::class, 'create'])->name('owner.payments.create');
+        Route::post('my-payments', [PaymentController::class, 'store'])->name('owner.payments.store');
+        Route::get('my-payments/{payment}', [PaymentController::class, 'show'])->name('owner.payments.show');
         
-        // Tenant utility bill routes
-        Route::get('my-utility-bills', [UtilityBillController::class, 'tenantIndex'])->name('tenant.utility-bills');
-        Route::get('my-utility-bills/{utilityBill}', [UtilityBillController::class, 'tenantShow'])->name('tenant.utility-bills.show');
-        Route::get('my-utility-bills/{utilityBill}/download-pdf', [UtilityBillController::class, 'downloadPdf'])->name('tenant.utility-bills.download-pdf');
+        // Owner utility bill routes
+        Route::get('my-utility-bills', [UtilityBillController::class, 'ownerIndex'])->name('owner.utility-bills');
+        Route::get('my-utility-bills/{utilityBill}', [UtilityBillController::class, 'ownerShow'])->name('owner.utility-bills.show');
+        Route::get('my-utility-bills/{utilityBill}/download-pdf', [UtilityBillController::class, 'downloadPdf'])->name('owner.utility-bills.download-pdf');
         
-        // Tenant maintenance request routes
-        Route::get('my-maintenance-requests', [MaintenanceRequestController::class, 'tenantIndex'])->name('tenant.maintenance-requests');
-        Route::get('my-maintenance-requests/create', [MaintenanceRequestController::class, 'tenantCreate'])->name('tenant.maintenance-requests.create');
-        Route::post('my-maintenance-requests', [MaintenanceRequestController::class, 'tenantStore'])->name('tenant.maintenance-requests.store');
-        Route::get('my-maintenance-requests/{maintenanceRequest}', [MaintenanceRequestController::class, 'tenantShow'])->name('tenant.maintenance-requests.show');
+        // Owner maintenance request routes
+        Route::get('my-maintenance-requests', [MaintenanceRequestController::class, 'ownerIndex'])->name('owner.maintenance-requests');
+        Route::get('my-maintenance-requests/create', [MaintenanceRequestController::class, 'ownerCreate'])->name('owner.maintenance-requests.create');
+        Route::post('my-maintenance-requests', [MaintenanceRequestController::class, 'ownerStore'])->name('owner.maintenance-requests.store');
+        Route::get('my-maintenance-requests/{maintenanceRequest}', [MaintenanceRequestController::class, 'ownerShow'])->name('owner.maintenance-requests.show');
         
-        // Tenant complaint routes
-        Route::get('my-complaints', [ComplaintController::class, 'tenantIndex'])->name('tenant.complaints');
-        Route::get('my-complaints/create', [ComplaintController::class, 'tenantCreate'])->name('tenant.complaints.create');
-        Route::post('my-complaints', [ComplaintController::class, 'tenantStore'])->name('tenant.complaints.store');
-        Route::get('my-complaints/{complaint}', [ComplaintController::class, 'tenantShow'])->name('tenant.complaints.show');
+        // Owner complaint routes
+        Route::get('my-complaints', [ComplaintController::class, 'ownerIndex'])->name('owner.complaints');
+        Route::get('my-complaints/create', [ComplaintController::class, 'ownerCreate'])->name('owner.complaints.create');
+        Route::post('my-complaints', [ComplaintController::class, 'ownerStore'])->name('owner.complaints.store');
+        Route::get('my-complaints/{complaint}', [ComplaintController::class, 'ownerShow'])->name('owner.complaints.show');
         
-        // Tenant notice routes
-        Route::get('my-notices', [NoticeController::class, 'tenantIndex'])->name('tenant.notices');
+        // Owner notice routes
+        Route::get('my-notices', [NoticeController::class, 'ownerIndex'])->name('owner.notices');
     });
     
     // Notification Routes (All authenticated users)
     Route::prefix('notifications')->name('notifications.')->group(function () {
         Route::get('/', [NotificationController::class, 'index'])->name('index');
+        Route::get('/page', [NotificationController::class, 'page'])->name('page');
         Route::patch('{notification}/read', [NotificationController::class, 'markAsRead'])->name('mark-read');
         Route::patch('mark-all-read', [NotificationController::class, 'markAllAsRead'])->name('mark-all-read');
         Route::delete('{notification}', [NotificationController::class, 'destroy'])->name('destroy');
         Route::get('unread-count', [NotificationController::class, 'getUnreadCount'])->name('unread-count');
+    });
+
+    // API Routes for AJAX calls
+    Route::prefix('api')->name('api.')->group(function () {
+        Route::prefix('notifications')->name('notifications.')->group(function () {
+            Route::get('/', [NotificationController::class, 'index'])->name('index');
+            Route::post('/mark-read', [NotificationController::class, 'markAsRead'])->name('mark-read');
+            Route::post('/mark-all-read', [NotificationController::class, 'markAllAsRead'])->name('mark-all-read');
+            Route::get('/unread-count', [NotificationController::class, 'getUnreadCount'])->name('unread-count');
+            Route::get('/test', [NotificationController::class, 'test'])->name('test');
+        });
+    });
+    
+    // Rooftop Reservation routes (Admin and Manager only)
+    Route::middleware('role:admin,manager')->group(function () {
+        Route::prefix('rooftop-reservations')->name('rooftop-reservations.')->group(function () {
+            Route::get('/', [RooftopReservationController::class, 'index'])->name('index');
+            Route::get('/create', [RooftopReservationController::class, 'create'])->name('create');
+            Route::post('/', [RooftopReservationController::class, 'store'])->name('store');
+            Route::get('/{rooftopReservation}', [RooftopReservationController::class, 'show'])->name('show');
+            Route::get('/{rooftopReservation}/edit', [RooftopReservationController::class, 'edit'])->name('edit');
+            Route::put('/{rooftopReservation}', [RooftopReservationController::class, 'update'])->name('update');
+            Route::delete('/{rooftopReservation}', [RooftopReservationController::class, 'destroy'])->name('destroy');
+            Route::patch('/{rooftopReservation}/approve', [RooftopReservationController::class, 'approve'])->name('approve');
+            Route::patch('/{rooftopReservation}/cancel', [RooftopReservationController::class, 'cancel'])->name('cancel');
+            Route::patch('/{rooftopReservation}/complete', [RooftopReservationController::class, 'complete'])->name('complete');
+            Route::get('/{rooftopReservation}/download-pdf', [RooftopReservationController::class, 'downloadPdf'])->name('download-pdf');
+            Route::get('/api/available-time-slots', [RooftopReservationController::class, 'getAvailableTimeSlots'])->name('available-time-slots');
+        });
     });
     
     // Toast Demo Routes (Development Only)

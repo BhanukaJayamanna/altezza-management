@@ -15,7 +15,7 @@ return new class extends Migration
             $table->id();
             $table->string('complaint_number')->unique();
             $table->foreignId('apartment_id')->nullable()->constrained('apartments')->onDelete('cascade');
-            $table->foreignId('tenant_id')->constrained('users')->onDelete('cascade');
+            $table->foreignId('owner_id')->constrained('users')->onDelete('cascade');
             $table->string('category')->default('general'); // noise, cleanliness, security, etc.
             $table->string('subject');
             $table->text('description');

@@ -55,11 +55,11 @@ endif;
 unset($__errorArgs, $__bag); ?>
                             </div>
 
-                            <!-- Block -->
+                            <!-- Assessment No -->
                             <div>
-                                <label for="block" class="block text-sm font-medium text-gray-700">Block/Tower</label>
-                                <input type="text" name="block" id="block" value="<?php echo e(old('block')); ?>"
-                                       class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:border-indigo-500 focus:ring-indigo-500 <?php $__errorArgs = ['block'];
+                                <label for="assessment_no" class="block text-sm font-medium text-gray-700">Assessment No</label>
+                                <input type="text" name="assessment_no" id="assessment_no" value="<?php echo e(old('assessment_no')); ?>"
+                                       class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:border-indigo-500 focus:ring-indigo-500 <?php $__errorArgs = ['assessment_no'];
 $__bag = $errors->getBag($__errorArgs[1] ?? 'default');
 if ($__bag->has($__errorArgs[0])) :
 if (isset($message)) { $__messageOriginal = $message; }
@@ -67,31 +67,7 @@ $message = $__bag->first($__errorArgs[0]); ?> border-red-500 <?php unset($messag
 if (isset($__messageOriginal)) { $message = $__messageOriginal; }
 endif;
 unset($__errorArgs, $__bag); ?>">
-                                <?php $__errorArgs = ['block'];
-$__bag = $errors->getBag($__errorArgs[1] ?? 'default');
-if ($__bag->has($__errorArgs[0])) :
-if (isset($message)) { $__messageOriginal = $message; }
-$message = $__bag->first($__errorArgs[0]); ?>
-                                    <p class="mt-1 text-sm text-red-600"><?php echo e($message); ?></p>
-                                <?php unset($message);
-if (isset($__messageOriginal)) { $message = $__messageOriginal; }
-endif;
-unset($__errorArgs, $__bag); ?>
-                            </div>
-
-                            <!-- Floor -->
-                            <div>
-                                <label for="floor" class="block text-sm font-medium text-gray-700">Floor</label>
-                                <input type="number" name="floor" id="floor" value="<?php echo e(old('floor')); ?>" min="0"
-                                       class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:border-indigo-500 focus:ring-indigo-500 <?php $__errorArgs = ['floor'];
-$__bag = $errors->getBag($__errorArgs[1] ?? 'default');
-if ($__bag->has($__errorArgs[0])) :
-if (isset($message)) { $__messageOriginal = $message; }
-$message = $__bag->first($__errorArgs[0]); ?> border-red-500 <?php unset($message);
-if (isset($__messageOriginal)) { $message = $__messageOriginal; }
-endif;
-unset($__errorArgs, $__bag); ?>">
-                                <?php $__errorArgs = ['floor'];
+                                <?php $__errorArgs = ['assessment_no'];
 $__bag = $errors->getBag($__errorArgs[1] ?? 'default');
 if ($__bag->has($__errorArgs[0])) :
 if (isset($message)) { $__messageOriginal = $message; }
@@ -166,11 +142,13 @@ endif;
 unset($__errorArgs, $__bag); ?>
                             </div>
 
-                            <!-- Owner -->
+                            <!-- Management Corporation -->
                             <div>
-                                <label for="owner_id" class="block text-sm font-medium text-gray-700">Owner *</label>
-                                <select name="owner_id" id="owner_id" required
-                                        class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:border-indigo-500 focus:ring-indigo-500 <?php $__errorArgs = ['owner_id'];
+                                <label for="management_corporation_id" class="block text-sm font-medium text-gray-700">
+                                    Management Corporation <span class="text-red-500">*</span>
+                                </label>
+                                <select name="management_corporation_id" id="management_corporation_id" required
+                                        class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:border-indigo-500 focus:ring-indigo-500 <?php $__errorArgs = ['management_corporation_id'];
 $__bag = $errors->getBag($__errorArgs[1] ?? 'default');
 if ($__bag->has($__errorArgs[0])) :
 if (isset($message)) { $__messageOriginal = $message; }
@@ -178,15 +156,15 @@ $message = $__bag->first($__errorArgs[0]); ?> border-red-500 <?php unset($messag
 if (isset($__messageOriginal)) { $message = $__messageOriginal; }
 endif;
 unset($__errorArgs, $__bag); ?>">
-                                    <option value="">Select Owner</option>
-                                    <?php $__currentLoopData = $owners; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $owner): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
-                                        <option value="<?php echo e($owner->id); ?>" <?php echo e(old('owner_id') == $owner->id ? 'selected' : ''); ?>>
-                                            <?php echo e($owner->name); ?>
+                                    <option value="">Select Management Corporation</option>
+                                    <?php $__currentLoopData = $managementCorporations; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $corp): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                                        <option value="<?php echo e($corp->id); ?>" <?php echo e(old('management_corporation_id') == $corp->id ? 'selected' : ''); ?>>
+                                            <?php echo e($corp->name); ?>
 
                                         </option>
                                     <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
                                 </select>
-                                <?php $__errorArgs = ['owner_id'];
+                                <?php $__errorArgs = ['management_corporation_id'];
 $__bag = $errors->getBag($__errorArgs[1] ?? 'default');
 if ($__bag->has($__errorArgs[0])) :
 if (isset($message)) { $__messageOriginal = $message; }
@@ -224,7 +202,7 @@ unset($__errorArgs, $__bag); ?>
 
                             <!-- Rent Amount -->
                             <div>
-                                <label for="rent_amount" class="block text-sm font-medium text-gray-700">Monthly Rent ($)</label>
+                                <label for="rent_amount" class="block text-sm font-medium text-gray-700">Monthly Rent (LKR)</label>
                                 <input type="number" name="rent_amount" id="rent_amount" value="<?php echo e(old('rent_amount')); ?>" min="0" step="0.01"
                                        class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:border-indigo-500 focus:ring-indigo-500 <?php $__errorArgs = ['rent_amount'];
 $__bag = $errors->getBag($__errorArgs[1] ?? 'default');

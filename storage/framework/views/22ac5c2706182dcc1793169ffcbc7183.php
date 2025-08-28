@@ -190,14 +190,14 @@
                             <a href="<?php echo e(route('apartments.create')); ?>" class="inline-flex items-center px-4 py-2 bg-blue-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-blue-700">
                                 Add Apartment
                             </a>
-                            <a href="<?php echo e(route('tenants.create')); ?>" class="inline-flex items-center px-4 py-2 bg-green-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-green-700">
-                                Add Tenant
+                            <a href="<?php echo e(route('owners.create')); ?>" class="inline-flex items-center px-4 py-2 bg-indigo-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-indigo-700">
+                                Add Owner
                             </a>
                             <a href="<?php echo e(route('invoices.create')); ?>" class="inline-flex items-center px-4 py-2 bg-yellow-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-yellow-700">
                                 Create Invoice
                             </a>
-                            <a href="<?php echo e(route('owners.create')); ?>" class="inline-flex items-center px-4 py-2 bg-purple-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-purple-700">
-                                Add Owner
+                            <a href="<?php echo e(route('management-corporations.create')); ?>" class="inline-flex items-center px-4 py-2 bg-purple-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-purple-700">
+                                Add Management Corporation
                             </a>
                         </div>
                     </div>

@@ -22,7 +22,7 @@ return new class extends Migration
             $table->decimal('rent_amount', 10, 2)->nullable(); // Monthly rent
             $table->text('description')->nullable();
             $table->foreignId('owner_id')->constrained('owners')->onDelete('cascade');
-            $table->foreignId('tenant_id')->nullable()->constrained('users')->onDelete('set null');
+            $table->foreignId('owner_id')->nullable()->constrained('users')->onDelete('set null');
             $table->timestamps();
 
             $table->index(['status', 'type']);

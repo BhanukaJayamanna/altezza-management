@@ -46,7 +46,7 @@
 
                         <div>
                             <dt class="text-sm font-medium text-gray-500">Block</dt>
-                            <dd class="mt-1 text-sm text-gray-900">{{ $meter->apartment->block }}</dd>
+                            <dd class="mt-1 text-sm text-gray-900">{{ $meter->apartment->assessment_no }}</dd>
                         </div>
 
                         <div>
@@ -191,23 +191,23 @@
                 </div>
             </x-card>
 
-            <!-- Current Tenant Information -->
+            <!-- Current Owner Information -->
             @if($meter->apartment->currentLease)
             <x-card>
                 <div class="px-6 py-4 border-b border-gray-200">
-                    <h3 class="text-lg font-medium text-gray-900">Current Tenant</h3>
+                    <h3 class="text-lg font-medium text-gray-900">Current Owner</h3>
                 </div>
 
                 <div class="p-6">
                     <div class="flex items-start space-x-4">
                         <div class="flex-1">
                             <h4 class="text-sm font-medium text-gray-900">
-                                <a href="{{ route('tenants.show', $meter->apartment->currentLease->tenant) }}" 
+                                <a href="{{ route('owners.show', $meter->apartment->currentLease->owner) }}" 
                                    class="text-blue-600 hover:text-blue-800">
-                                    {{ $meter->apartment->currentLease->tenant->name }}
+                                    {{ $meter->apartment->currentLease->owner->name }}
                                 </a>
                             </h4>
-                            <p class="text-sm text-gray-500">{{ $meter->apartment->currentLease->tenant->email }}</p>
+                            <p class="text-sm text-gray-500">{{ $meter->apartment->currentLease->owner->email }}</p>
                             <p class="text-sm text-gray-500">
                                 Lease: {{ $meter->apartment->currentLease->start_date->format('M j, Y') }} - 
                                 {{ $meter->apartment->currentLease->end_date->format('M j, Y') }}

@@ -46,7 +46,7 @@
                                     <span class="font-medium">Invoice:</span> {{ $invoice->invoice_number }}
                                 </div>
                                 <div>
-                                    <span class="font-medium">Tenant:</span> {{ $invoice->tenant->name }}
+                                    <span class="font-medium">Owner:</span> {{ $invoice->owner->name }}
                                 </div>
                                 <div>
                                     <span class="font-medium">Apartment:</span> {{ $invoice->apartment->number }}
@@ -74,14 +74,14 @@
                                 @if(isset($invoice))
                                     <input type="hidden" name="invoice_id" value="{{ $invoice->id }}">
                                     <div class="mt-1 p-3 bg-gray-100 border border-gray-300 rounded-md">
-                                        {{ $invoice->invoice_number }} - {{ $invoice->tenant->name }} ({{ $invoice->apartment->number }})
+                                        {{ $invoice->invoice_number }} - {{ $invoice->owner->name }} ({{ $invoice->apartment->number }})
                                     </div>
                                 @else
                                     <select name="invoice_id" id="invoice_id" required class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
                                         <option value="">Select an invoice</option>
                                         @foreach($unpaidInvoices as $unpaidInvoice)
                                             <option value="{{ $unpaidInvoice->id }}" data-total="{{ $unpaidInvoice->total_amount }}" data-paid="{{ $unpaidInvoice->payments()->where('status', 'confirmed')->sum('amount') }}">
-                                                {{ $unpaidInvoice->invoice_number }} - {{ $unpaidInvoice->tenant->name }} ({{ $unpaidInvoice->apartment->number }}) - Remaining: @currency($unpaidInvoice->total_amount - $unpaidInvoice->payments()->where('status', 'confirmed')->sum('amount'))
+                                                {{ $unpaidInvoice->invoice_number }} - {{ $unpaidInvoice->owner->name }} ({{ $unpaidInvoice->apartment->number }}) - Remaining: @currency($unpaidInvoice->total_amount - $unpaidInvoice->payments()->where('status', 'confirmed')->sum('amount'))
                                             </option>
                                         @endforeach
                                     </select>

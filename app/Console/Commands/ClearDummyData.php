@@ -5,10 +5,9 @@ namespace App\Console\Commands;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\DB;
 use App\Models\User;
-use App\Models\Owner;
+use App\Models\ManagementCorporation;
 use App\Models\Apartment;
-use App\Models\Tenant;
-use App\Models\Lease;
+use App\Models\Owner;
 use App\Models\Invoice;
 use App\Models\Payment;
 use App\Models\PaymentVoucher;
@@ -33,10 +32,9 @@ class ClearDummyData extends Command
         // Keep track of what we're removing
         $this->info('Current data counts:');
         $this->line('Users: ' . User::count());
-        $this->line('Owners: ' . Owner::count());
+        $this->line('Management Corporations: ' . ManagementCorporation::count());
         $this->line('Apartments: ' . Apartment::count());
-        $this->line('Tenants: ' . Tenant::count());
-        $this->line('Leases: ' . Lease::count());
+        $this->line('Owners: ' . Owner::count());
 
         if ($this->confirm('Do you want to proceed with clearing dummy data? (This will keep only admin@altezza.com and manager@altezza.com)')) {
             
@@ -49,9 +47,9 @@ class ClearDummyData extends Command
             $this->info('Dummy data cleared successfully!');
             $this->info('Remaining data:');
             $this->line('Users: ' . User::count());
-            $this->line('Owners: ' . Owner::count());
+            $this->line('Management Corporations: ' . ManagementCorporation::count());
             $this->line('Apartments: ' . Apartment::count());
-            $this->line('Tenants: ' . Tenant::count());
+            $this->line('Owners: ' . Owner::count());
             
             $this->info('Admin login: admin@altezza.com / password');
             $this->info('Manager login: manager@altezza.com / password');
@@ -92,10 +90,6 @@ class ClearDummyData extends Command
         Notice::truncate();
         $this->line('✓ Operational data cleared');
 
-        // Clear leases
-        Lease::truncate();
-        $this->line('✓ Leases cleared');
-
         // Re-enable foreign key checks
         DB::statement('SET FOREIGN_KEY_CHECKS=1;');
     }
@@ -107,17 +101,17 @@ class ClearDummyData extends Command
         // Disable foreign key checks temporarily
         DB::statement('SET FOREIGN_KEY_CHECKS=0;');
 
-        // Clear tenants
-        Tenant::truncate();
-        $this->line('✓ Tenants cleared');
+        // Clear owners (using tenants table)
+        Owner::truncate();
+        $this->line('✓ Owners cleared');
 
         // Clear apartments
         Apartment::truncate();
         $this->line('✓ Apartments cleared');
 
-        // Clear owners
-        Owner::truncate();
-        $this->line('✓ Owners cleared');
+        // Clear management corporations
+        ManagementCorporation::truncate();
+        $this->line('✓ Management Corporations cleared');
 
         // Re-enable foreign key checks
         DB::statement('SET FOREIGN_KEY_CHECKS=1;');

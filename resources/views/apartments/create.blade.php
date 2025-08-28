@@ -31,22 +31,12 @@
                                 @enderror
                             </div>
 
-                            <!-- Block -->
+                            <!-- Assessment No -->
                             <div>
-                                <label for="block" class="block text-sm font-medium text-gray-700">Block/Tower</label>
-                                <input type="text" name="block" id="block" value="{{ old('block') }}"
-                                       class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:border-indigo-500 focus:ring-indigo-500 @error('block') border-red-500 @enderror">
-                                @error('block')
-                                    <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
-                                @enderror
-                            </div>
-
-                            <!-- Floor -->
-                            <div>
-                                <label for="floor" class="block text-sm font-medium text-gray-700">Floor</label>
-                                <input type="number" name="floor" id="floor" value="{{ old('floor') }}" min="0"
-                                       class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:border-indigo-500 focus:ring-indigo-500 @error('floor') border-red-500 @enderror">
-                                @error('floor')
+                                <label for="assessment_no" class="block text-sm font-medium text-gray-700">Assessment No</label>
+                                <input type="text" name="assessment_no" id="assessment_no" value="{{ old('assessment_no') }}"
+                                       class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:border-indigo-500 focus:ring-indigo-500 @error('assessment_no') border-red-500 @enderror">
+                                @error('assessment_no')
                                     <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
                                 @enderror
                             </div>
@@ -84,19 +74,21 @@
                                 @enderror
                             </div>
 
-                            <!-- Owner -->
+                            <!-- Management Corporation -->
                             <div>
-                                <label for="owner_id" class="block text-sm font-medium text-gray-700">Owner *</label>
-                                <select name="owner_id" id="owner_id" required
-                                        class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:border-indigo-500 focus:ring-indigo-500 @error('owner_id') border-red-500 @enderror">
-                                    <option value="">Select Owner</option>
-                                    @foreach($owners as $owner)
-                                        <option value="{{ $owner->id }}" {{ old('owner_id') == $owner->id ? 'selected' : '' }}>
-                                            {{ $owner->name }}
+                                <label for="management_corporation_id" class="block text-sm font-medium text-gray-700">
+                                    Management Corporation <span class="text-red-500">*</span>
+                                </label>
+                                <select name="management_corporation_id" id="management_corporation_id" required
+                                        class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:border-indigo-500 focus:ring-indigo-500 @error('management_corporation_id') border-red-500 @enderror">
+                                    <option value="">Select Management Corporation</option>
+                                    @foreach($managementCorporations as $corp)
+                                        <option value="{{ $corp->id }}" {{ old('management_corporation_id') == $corp->id ? 'selected' : '' }}>
+                                            {{ $corp->name }}
                                         </option>
                                     @endforeach
                                 </select>
-                                @error('owner_id')
+                                @error('management_corporation_id')
                                     <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
                                 @enderror
                             </div>
@@ -113,7 +105,7 @@
 
                             <!-- Rent Amount -->
                             <div>
-                                <label for="rent_amount" class="block text-sm font-medium text-gray-700">Monthly Rent ($)</label>
+                                <label for="rent_amount" class="block text-sm font-medium text-gray-700">Monthly Rent (LKR)</label>
                                 <input type="number" name="rent_amount" id="rent_amount" value="{{ old('rent_amount') }}" min="0" step="0.01"
                                        class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:border-indigo-500 focus:ring-indigo-500 @error('rent_amount') border-red-500 @enderror">
                                 @error('rent_amount')

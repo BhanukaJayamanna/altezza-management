@@ -49,7 +49,7 @@ class PaymentVoucherStatusChanged extends Notification implements ShouldQueue
             ->line("**Voucher Details:**")
             ->line("- Voucher Number: {$this->voucher->voucher_number}")
             ->line("- Vendor: {$this->voucher->vendor_name}")
-            ->line("- Amount: ₹" . number_format($this->voucher->amount, 2))
+            ->line("- Amount: LKR " . number_format($this->voucher->amount, 2))
             ->line("- Description: {$this->voucher->description}");
 
         if ($this->voucher->apartment) {

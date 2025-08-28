@@ -16,7 +16,7 @@ return new class extends Migration
             $table->string('invoice_number')->unique();
             $table->enum('type', ['rent', 'utility', 'maintenance', 'other'])->default('rent');
             $table->foreignId('apartment_id')->constrained('apartments')->onDelete('cascade');
-            $table->foreignId('tenant_id')->constrained('users')->onDelete('cascade');
+            $table->foreignId('owner_id')->constrained('users')->onDelete('cascade');
             $table->date('billing_period_start');
             $table->date('billing_period_end');
             $table->decimal('amount', 10, 2);

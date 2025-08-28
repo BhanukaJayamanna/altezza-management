@@ -53,32 +53,37 @@ class User extends Authenticatable
     // Relationships
     public function tenant()
     {
-        return $this->hasOne(Tenant::class);
+        return $this->ownerProfile(); // Backward compatibility alias
     }
 
     public function tenantProfile()
     {
-        return $this->hasOne(Tenant::class);
+        return $this->ownerProfile(); // Backward compatibility alias
     }
 
-    public function apartment()
+    public function ownerProfile()
     {
-        return $this->hasOne(Apartment::class, 'tenant_id');
+        return $this->hasOne(Owner::class);
+    }
+
+    public function owner()
+    {
+        return $this->hasOne(Owner::class);
     }
 
     public function invoices()
     {
-        return $this->hasMany(Invoice::class, 'tenant_id');
+        return $this->hasMany(Invoice::class, 'owner_id');
     }
 
     public function payments()
     {
-        return $this->hasMany(Payment::class, 'tenant_id');
+        return $this->hasMany(Payment::class, 'owner_id');
     }
 
     public function maintenanceRequests()
     {
-        return $this->hasMany(MaintenanceRequest::class, 'tenant_id');
+        return $this->hasMany(MaintenanceRequest::class, 'owner_id');
     }
 
     public function assignedMaintenanceRequests()
@@ -88,7 +93,7 @@ class User extends Authenticatable
 
     public function complaints()
     {
-        return $this->hasMany(Complaint::class, 'tenant_id');
+        return $this->hasMany(Complaint::class, 'owner_id');
     }
 
     public function assignedComplaints()
@@ -101,30 +106,20 @@ class User extends Authenticatable
         return $this->hasMany(Notice::class, 'created_by');
     }
 
-    public function leases()
-    {
-        return $this->hasMany(Lease::class, 'tenant_id');
-    }
-
-    public function currentLease()
-    {
-        return $this->hasOne(Lease::class, 'tenant_id')->where('status', 'active');
-    }
-
     // Helper methods
     public function isAdmin()
     {
-        return $this->role === 'admin';
+        return $this->hasRole('admin');
     }
 
     public function isManager()
     {
-        return $this->role === 'manager';
+        return $this->hasRole('manager');
     }
 
-    public function isTenant()
+    public function isOwner()
     {
-        return $this->role === 'tenant';
+        return $this->hasRole('owner');
     }
 
     public function isActive()

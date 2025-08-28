@@ -69,8 +69,9 @@ $cardBg = $bgColors[$color] ?? $bgColors['blue'];
     <div class="flex items-center">
         <div class="flex-shrink-0">
             <div class="w-12 h-12 bg-gradient-to-br <?php echo e($iconBg); ?> rounded-xl flex items-center justify-center shadow-lg">
-                <?php echo $icon; ?>
-
+                <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="<?php echo e($icon); ?>"/>
+                </svg>
             </div>
         </div>
         <div class="ml-5 w-0 flex-1">

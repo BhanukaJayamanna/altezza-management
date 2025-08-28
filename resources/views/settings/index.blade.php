@@ -10,6 +10,25 @@
                             <p class="mt-1 text-sm text-gray-600">Configure your property management system</p>
                         </div>
                         <div class="flex space-x-3">
+                            <!-- User Flow Guide Button -->
+                            <a href="{{ route('documentation.user-flow-pdf.preview') }}" 
+                               target="_blank"
+                               class="inline-flex items-center px-4 py-2 bg-purple-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-purple-700 focus:bg-purple-700 active:bg-purple-900 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-offset-2 transition ease-in-out duration-150">
+                                <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                                </svg>
+                                User Flow Guide
+                            </a>
+                            
+                            <!-- Download PDF Button -->
+                            <a href="{{ route('documentation.user-flow-pdf.download') }}" 
+                               class="inline-flex items-center px-4 py-2 bg-indigo-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-indigo-700 focus:bg-indigo-700 active:bg-indigo-900 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 transition ease-in-out duration-150">
+                                <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                                </svg>
+                                Download PDF
+                            </a>
+                            
                             <!-- Export Button -->
                             <a href="{{ route('settings.export') }}" 
                                class="inline-flex items-center px-4 py-2 bg-green-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-green-700 focus:bg-green-700 active:bg-green-900 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 transition ease-in-out duration-150">
@@ -124,7 +143,7 @@
                                             name="settings[{{ $setting->key }}]" 
                                             class="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition duration-150 ease-in-out">
                                         <option value="LKR" {{ $setting->value === 'LKR' ? 'selected' : '' }}>LKR - Sri Lankan Rupee</option>
-                                        <option value="USD" {{ $setting->value === 'USD' ? 'selected' : '' }}>USD - US Dollar</option>
+
                                         <option value="EUR" {{ $setting->value === 'EUR' ? 'selected' : '' }}>EUR - Euro</option>
                                         <option value="GBP" {{ $setting->value === 'GBP' ? 'selected' : '' }}>GBP - British Pound</option>
                                         <option value="INR" {{ $setting->value === 'INR' ? 'selected' : '' }}>INR - Indian Rupee</option>
@@ -136,13 +155,13 @@
                                     <select id="{{ $setting->key }}" 
                                             name="settings[{{ $setting->key }}]" 
                                             class="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition duration-150 ease-in-out">
-                                        <option value="Rs." {{ $setting->value === 'Rs.' ? 'selected' : '' }}>Rs. (Sri Lankan Rupee)</option>
-                                        <option value="$" {{ $setting->value === '$' ? 'selected' : '' }}>$ (US Dollar)</option>
+                                        <option value="LKR " {{ $setting->value === 'LKR ' ? 'selected' : '' }}>LKR (Sri Lankan Rupee)</option>
+
                                         <option value="€" {{ $setting->value === '€' ? 'selected' : '' }}>€ (Euro)</option>
                                         <option value="£" {{ $setting->value === '£' ? 'selected' : '' }}>£ (British Pound)</option>
-                                        <option value="₹" {{ $setting->value === '₹' ? 'selected' : '' }}>₹ (Indian Rupee)</option>
-                                        <option value="A$" {{ $setting->value === 'A$' ? 'selected' : '' }}>A$ (Australian Dollar)</option>
-                                        <option value="C$" {{ $setting->value === 'C$' ? 'selected' : '' }}>C$ (Canadian Dollar)</option>
+                                        <option value="LKR" {{ $setting->value === 'LKR' ? 'selected' : '' }}>LKR (Sri Lankan Rupee)</option>
+
+
                                     </select>
 
                                 @elseif($setting->key === 'timezone')

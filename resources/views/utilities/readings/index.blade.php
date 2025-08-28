@@ -142,7 +142,7 @@
                                        class="text-blue-600 hover:text-blue-800">
                                         {{ $reading->meter->apartment->number }}
                                     </a>
-                                    <div class="text-xs text-gray-500">{{ $reading->meter->apartment->block }}</div>
+                                    <div class="text-xs text-gray-500">{{ $reading->meter->apartment->assessment_no }}</div>
                                 </td>
                                 <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                                     <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium 

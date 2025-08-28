@@ -46,16 +46,16 @@ if (isset($message)) { $__messageOriginal = $message; }
 $message = $__bag->first($__errorArgs[0]); ?> border-red-500 <?php unset($message);
 if (isset($__messageOriginal)) { $message = $__messageOriginal; }
 endif;
-unset($__errorArgs, $__bag); ?>" required onchange="updateTenant()">
+unset($__errorArgs, $__bag); ?>" required onchange="updateOwner()">
                                         <option value="">Select Apartment</option>
                                         <?php $__currentLoopData = $apartments; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $apartment): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
                                             <option value="<?php echo e($apartment->id); ?>" 
-                                                    data-tenant-id="<?php echo e($apartment->tenant?->id); ?>"
+                                                    data-owner-id="<?php echo e($apartment->owner?->id); ?>"
                                                     data-rent="<?php echo e($apartment->rent_amount); ?>"
                                                     <?php echo e(old('apartment_id') == $apartment->id ? 'selected' : ''); ?>>
                                                 <?php echo e($apartment->number); ?> 
                                                 <?php if($apartment->block): ?> - Block <?php echo e($apartment->block); ?> <?php endif; ?>
-                                                (<?php echo e($apartment->tenant?->name ?? 'No Tenant'); ?>)
+                                                (<?php echo e($apartment->owner?->name ?? 'No Owner'); ?>)
                                             </option>
                                         <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
                                     </select>
@@ -71,12 +71,12 @@ endif;
 unset($__errorArgs, $__bag); ?>
                                 </div>
 
-                                <!-- Tenant -->
+                                <!-- Owner -->
                                 <div>
-                                    <label for="tenant_id" class="block font-medium text-sm text-gray-700 mb-2">
-                                        Tenant <span class="text-red-500">*</span>
+                                    <label for="owner_id" class="block font-medium text-sm text-gray-700 mb-2">
+                                        Owner <span class="text-red-500">*</span>
                                     </label>
-                                    <select id="tenant_id" name="tenant_id" class="block mt-1 w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 <?php $__errorArgs = ['tenant_id'];
+                                    <select id="owner_id" name="owner_id" class="block mt-1 w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 <?php $__errorArgs = ['owner_id'];
 $__bag = $errors->getBag($__errorArgs[1] ?? 'default');
 if ($__bag->has($__errorArgs[0])) :
 if (isset($message)) { $__messageOriginal = $message; }
@@ -84,50 +84,14 @@ $message = $__bag->first($__errorArgs[0]); ?> border-red-500 <?php unset($messag
 if (isset($__messageOriginal)) { $message = $__messageOriginal; }
 endif;
 unset($__errorArgs, $__bag); ?>" required>
-                                        <option value="">Select Tenant</option>
-                                        <?php $__currentLoopData = $tenants; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $tenant): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
-                                            <option value="<?php echo e($tenant->id); ?>" <?php echo e(old('tenant_id') == $tenant->id ? 'selected' : ''); ?>>
-                                                <?php echo e($tenant->name); ?> (<?php echo e($tenant->email); ?>)
+                                        <option value="">Select Owner</option>
+                                        <?php $__currentLoopData = $owners; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $owner): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                                            <option value="<?php echo e($owner->id); ?>" <?php echo e(old('owner_id') == $owner->id ? 'selected' : ''); ?>>
+                                                <?php echo e($owner->name); ?> (<?php echo e($owner->email); ?>)
                                             </option>
                                         <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
                                     </select>
-                                    <?php $__errorArgs = ['tenant_id'];
-$__bag = $errors->getBag($__errorArgs[1] ?? 'default');
-if ($__bag->has($__errorArgs[0])) :
-if (isset($message)) { $__messageOriginal = $message; }
-$message = $__bag->first($__errorArgs[0]); ?>
-                                        <p class="mt-2 text-sm text-red-600"><?php echo e($message); ?></p>
-                                    <?php unset($message);
-if (isset($__messageOriginal)) { $message = $__messageOriginal; }
-endif;
-unset($__errorArgs, $__bag); ?>
-                                </div>
-
-                                <!-- Lease (Optional) -->
-                                <div>
-                                    <label for="lease_id" class="block font-medium text-sm text-gray-700 mb-2">
-                                        Related Lease (Optional)
-                                    </label>
-                                    <select id="lease_id" name="lease_id" onchange="updateFromLease()" class="block mt-1 w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 <?php $__errorArgs = ['lease_id'];
-$__bag = $errors->getBag($__errorArgs[1] ?? 'default');
-if ($__bag->has($__errorArgs[0])) :
-if (isset($message)) { $__messageOriginal = $message; }
-$message = $__bag->first($__errorArgs[0]); ?> border-red-500 <?php unset($message);
-if (isset($__messageOriginal)) { $message = $__messageOriginal; }
-endif;
-unset($__errorArgs, $__bag); ?>">
-                                        <option value="">Select Lease (Optional)</option>
-                                        <?php $__currentLoopData = $leases; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $lease): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
-                                            <option value="<?php echo e($lease->id); ?>" 
-                                                    data-apartment-id="<?php echo e($lease->apartment_id); ?>"
-                                                    data-tenant-id="<?php echo e($lease->tenant_id); ?>"
-                                                    data-rent="<?php echo e($lease->rent_amount); ?>"
-                                                    <?php echo e(old('lease_id') == $lease->id ? 'selected' : ''); ?>>
-                                                <?php echo e($lease->lease_number); ?> - Apt <?php echo e($lease->apartment->number); ?> (<?php echo e($lease->tenant->name); ?>)
-                                            </option>
-                                        <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
-                                    </select>
-                                    <?php $__errorArgs = ['lease_id'];
+                                    <?php $__errorArgs = ['owner_id'];
 $__bag = $errors->getBag($__errorArgs[1] ?? 'default');
 if ($__bag->has($__errorArgs[0])) :
 if (isset($message)) { $__messageOriginal = $message; }
@@ -156,6 +120,7 @@ unset($__errorArgs, $__bag); ?>" required onchange="updateBaseAmount()">
                                         <option value="rent" <?php echo e(old('type') == 'rent' ? 'selected' : ''); ?>>Rent</option>
                                         <option value="utility" <?php echo e(old('type') == 'utility' ? 'selected' : ''); ?>>Utility</option>
                                         <option value="maintenance" <?php echo e(old('type') == 'maintenance' ? 'selected' : ''); ?>>Maintenance</option>
+                                        <option value="rooftop_reservation" <?php echo e(old('type') == 'rooftop_reservation' ? 'selected' : ''); ?>>Rooftop Reservation</option>
                                         <option value="other" <?php echo e(old('type') == 'other' ? 'selected' : ''); ?>>Other</option>
                                     </select>
                                     <?php $__errorArgs = ['type'];
@@ -232,7 +197,7 @@ unset($__errorArgs, $__bag); ?>
                                 <!-- Base Amount -->
                                 <div>
                                     <label for="amount" class="block font-medium text-sm text-gray-700 mb-2">
-                                        Amount ($) <span class="text-red-500">*</span>
+                                        Amount (LKR) <span class="text-red-500">*</span>
                                     </label>
                                     <input id="amount" class="block mt-1 w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 <?php $__errorArgs = ['amount'];
 $__bag = $errors->getBag($__errorArgs[1] ?? 'default');
@@ -258,7 +223,7 @@ unset($__errorArgs, $__bag); ?>
                                 <!-- Late Fee -->
                                 <div>
                                     <label for="late_fee" class="block font-medium text-sm text-gray-700 mb-2">
-                                        Late Fee ($)
+                                        Late Fee (LKR)
                                     </label>
                                     <input id="late_fee" class="block mt-1 w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 <?php $__errorArgs = ['late_fee'];
 $__bag = $errors->getBag($__errorArgs[1] ?? 'default');
@@ -284,7 +249,7 @@ unset($__errorArgs, $__bag); ?>
                                 <!-- Discount -->
                                 <div>
                                     <label for="discount" class="block font-medium text-sm text-gray-700 mb-2">
-                                        Discount ($)
+                                        Discount (LKR)
                                     </label>
                                     <input id="discount" class="block mt-1 w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 <?php $__errorArgs = ['discount'];
 $__bag = $errors->getBag($__errorArgs[1] ?? 'default');
@@ -338,7 +303,7 @@ unset($__errorArgs, $__bag); ?>
                             <div class="mt-6 p-4 bg-gray-50 rounded-lg">
                                 <div class="flex justify-between items-center">
                                     <span class="text-lg font-semibold text-gray-900">Total Amount:</span>
-                                    <span id="total_display" class="text-2xl font-bold text-indigo-600">$0.00</span>
+                                    <span id="total_display" class="text-2xl font-bold text-indigo-600">LKR 0.00</span>
                                 </div>
                             </div>
                         </div>
@@ -380,44 +345,18 @@ unset($__errorArgs, $__bag); ?>
     <script>
         let lineItemCount = 0;
 
-        function updateTenant() {
+        function updateOwner() {
             const apartmentSelect = document.getElementById('apartment_id');
-            const tenantSelect = document.getElementById('tenant_id');
+            const ownerSelect = document.getElementById('owner_id');
             const selectedOption = apartmentSelect.options[apartmentSelect.selectedIndex];
             
-            if (selectedOption.dataset.tenantId) {
-                tenantSelect.value = selectedOption.dataset.tenantId;
+            if (selectedOption.dataset.ownerId) {
+                ownerSelect.value = selectedOption.dataset.ownerId;
             } else {
-                tenantSelect.value = '';
+                ownerSelect.value = '';
             }
             
             updateBaseAmount();
-        }
-
-        function updateFromLease() {
-            const leaseSelect = document.getElementById('lease_id');
-            const apartmentSelect = document.getElementById('apartment_id');
-            const tenantSelect = document.getElementById('tenant_id');
-            const amountInput = document.getElementById('amount');
-            const selectedOption = leaseSelect.options[leaseSelect.selectedIndex];
-            
-            if (selectedOption && selectedOption.value) {
-                // Update apartment
-                if (selectedOption.dataset.apartmentId) {
-                    apartmentSelect.value = selectedOption.dataset.apartmentId;
-                }
-                
-                // Update tenant
-                if (selectedOption.dataset.tenantId) {
-                    tenantSelect.value = selectedOption.dataset.tenantId;
-                }
-                
-                // Update amount if it's a rent invoice
-                const typeSelect = document.getElementById('type');
-                if (typeSelect.value === 'rent' && selectedOption.dataset.rent) {
-                    amountInput.value = selectedOption.dataset.rent;
-                }
-            }
         }
 
         function updateBaseAmount() {
@@ -439,7 +378,7 @@ unset($__errorArgs, $__bag); ?>
             const discount = parseFloat(document.getElementById('discount').value) || 0;
             
             const total = amount + lateFee - discount;
-            document.getElementById('total_display').textContent = '$' + total.toFixed(2);
+            document.getElementById('total_display').textContent = 'LKR ' + total.toFixed(2);
         }
 
         function addLineItem() {
@@ -454,7 +393,7 @@ unset($__errorArgs, $__bag); ?>
                                placeholder="Item description">
                     </div>
                     <div class="w-32">
-                        <label class="block text-sm font-medium text-gray-700 mb-1">Amount ($)</label>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Amount (LKR)</label>
                         <input type="number" name="items[${lineItemCount}][amount]" 
                                class="w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
                                min="0" step="0.01" placeholder="0.00">

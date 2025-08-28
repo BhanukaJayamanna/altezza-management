@@ -118,7 +118,7 @@
                                     <option value="">All Apartments</option>
                                     @foreach($apartments as $apartment)
                                         <option value="{{ $apartment->id }}" {{ request('apartment_id') == $apartment->id ? 'selected' : '' }}>
-                                            {{ $apartment->number }} ({{ $apartment->block }})
+                                            {{ $apartment->number }} ({{ $apartment->assessment_no }})
                                         </option>
                                     @endforeach
                                 </select>
@@ -239,9 +239,9 @@
                                        class="text-blue-600 hover:text-blue-800">
                                         {{ $bill->apartment->number }}
                                     </a>
-                                    <div class="text-xs text-gray-500">{{ $bill->apartment->block }}</div>
-                                    @if($bill->apartment->currentLease && $bill->apartment->currentLease->tenant)
-                                    <div class="text-xs text-gray-500">{{ $bill->apartment->currentLease->tenant->name }}</div>
+                                    <div class="text-xs text-gray-500">{{ $bill->apartment->assessment_no }}</div>
+                                    @if($bill->apartment->currentLease && $bill->apartment->currentLease->owner)
+                                    <div class="text-xs text-gray-500">{{ $bill->apartment->currentLease->owner->name }}</div>
                                     @endif
                                 </td>
                                 <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">

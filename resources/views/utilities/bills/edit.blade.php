@@ -55,24 +55,24 @@
                             <label for="apartment_id" class="block text-sm font-medium text-gray-700 mb-2">
                                 Apartment <span class="text-red-500">*</span>
                             </label>
-                            <select id="apartment_id" name="apartment_id" required onchange="updateTenantInfo()" {{ $bill->status === 'paid' ? 'disabled' : '' }}
+                            <select id="apartment_id" name="apartment_id" required onchange="updateOwnerInfo()" {{ $bill->status === 'paid' ? 'disabled' : '' }}
                                     class="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 {{ $bill->status === 'paid' ? 'bg-gray-100' : '' }}">
                                 <option value="">Select Apartment</option>
                                 @foreach($apartments as $apartment)
                                     @php
-                                        $tenantName = 'No tenant';
-                                        if ($apartment->currentLease && $apartment->currentLease->tenant) {
-                                            $tenantName = $apartment->currentLease->tenant->name;
+                                        $ownerName = 'No owner';
+                                        if ($apartment->currentLease && $apartment->currentLease->owner) {
+                                            $ownerName = $apartment->currentLease->owner->name;
                                         }
                                     @endphp
                                     <option value="{{ $apartment->id }}" 
-                                            data-tenant="{{ $tenantName }}"
+                                            data-owner="{{ $ownerName }}"
                                             {{ old('apartment_id', $bill->apartment_id) == $apartment->id ? 'selected' : '' }}>
-                                        {{ $apartment->number }} - {{ $apartment->type }} ({{ $apartment->block }})
+                                        {{ $apartment->number }} - {{ $apartment->type }} ({{ $apartment->assessment_no }})
                                     </option>
                                 @endforeach
                             </select>
-                            <div id="tenant-info" class="mt-1 text-sm text-gray-500"></div>
+                            <div id="owner-info" class="mt-1 text-sm text-gray-500"></div>
                         </div>
 
                         <!-- Meter (Optional) -->
@@ -135,7 +135,7 @@
                         <!-- Total Amount -->
                         <div>
                             <label for="total_amount" class="block text-sm font-medium text-gray-700 mb-2">
-                                Total Amount ($) <span class="text-red-500">*</span>
+                                Total Amount (LKR) <span class="text-red-500">*</span>
                             </label>
                             <div class="relative">
                                 <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
@@ -226,16 +226,16 @@
 
     @push('scripts')
     <script>
-        function updateTenantInfo() {
+        function updateOwnerInfo() {
             const select = document.getElementById('apartment_id');
-            const tenantInfo = document.getElementById('tenant-info');
+            const ownerInfo = document.getElementById('owner-info');
             const selectedOption = select.options[select.selectedIndex];
             
             if (selectedOption.value) {
-                const tenantName = selectedOption.dataset.tenant;
-                tenantInfo.textContent = `Current tenant: ${tenantName}`;
+                const ownerName = selectedOption.dataset.owner;
+                ownerInfo.textContent = `Current owner: ${ownerName}`;
             } else {
-                tenantInfo.textContent = '';
+                ownerInfo.textContent = '';
             }
         }
 
@@ -253,9 +253,9 @@
             document.getElementById('total_amount').value = total.toFixed(2);
         }
 
-        // Initialize tenant info on page load
+        // Initialize owner info on page load
         document.addEventListener('DOMContentLoaded', function() {
-            updateTenantInfo();
+            updateOwnerInfo();
         });
     </script>
     @endpush

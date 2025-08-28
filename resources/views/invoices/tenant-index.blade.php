@@ -39,7 +39,7 @@
                     </div>
                     <div class="ml-4">
                         <div class="text-sm font-medium text-gray-500">Total Amount</div>
-                        <div class="text-2xl font-bold text-gray-900">${{ number_format($totalAmount, 2) }}</div>
+                        <div class="text-2xl font-bold text-gray-900">LKR {{ number_format($totalAmount, 2) }}</div>
                     </div>
                 </div>
             </div>
@@ -57,7 +57,7 @@
                     </div>
                     <div class="ml-4">
                         <div class="text-sm font-medium text-gray-500">Paid</div>
-                        <div class="text-2xl font-bold text-green-600">${{ number_format($paidAmount, 2) }}</div>
+                        <div class="text-2xl font-bold text-green-600">LKR {{ number_format($paidAmount, 2) }}</div>
                     </div>
                 </div>
             </div>
@@ -75,7 +75,7 @@
                     </div>
                     <div class="ml-4">
                         <div class="text-sm font-medium text-gray-500">Pending</div>
-                        <div class="text-2xl font-bold text-yellow-600">${{ number_format($pendingAmount, 2) }}</div>
+                        <div class="text-2xl font-bold text-yellow-600">LKR {{ number_format($pendingAmount, 2) }}</div>
                     </div>
                 </div>
             </div>
@@ -93,7 +93,7 @@
                     </div>
                     <div class="ml-4">
                         <div class="text-sm font-medium text-gray-500">Overdue</div>
-                        <div class="text-2xl font-bold text-red-600">${{ number_format($overdueAmount, 2) }}</div>
+                        <div class="text-2xl font-bold text-red-600">LKR {{ number_format($overdueAmount, 2) }}</div>
                     </div>
                 </div>
             </div>
@@ -103,7 +103,7 @@
     <!-- Filters -->
     <div class="bg-white shadow-sm sm:rounded-lg mb-6">
         <div class="p-6">
-            <form method="GET" action="{{ route('tenant.invoices') }}" class="space-y-4 sm:space-y-0 sm:flex sm:items-end sm:space-x-4">
+            <form method="GET" action="{{ route('owner.invoices') }}" class="space-y-4 sm:space-y-0 sm:flex sm:items-end sm:space-x-4">
                 <div class="flex-1">
                     <label for="search" class="block text-sm font-medium text-gray-700">Search</label>
                     <input type="text" name="search" id="search" value="{{ request('search') }}" placeholder="Search by invoice number..." class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500">
@@ -134,7 +134,7 @@
                     <button type="submit" class="inline-flex items-center px-4 py-2 bg-blue-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-blue-700 focus:bg-blue-700 active:bg-blue-900 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 transition ease-in-out duration-150">
                         Filter
                     </button>
-                    <a href="{{ route('tenant.invoices') }}" class="inline-flex items-center px-4 py-2 bg-gray-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-gray-700 focus:bg-gray-700 active:bg-gray-900 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 transition ease-in-out duration-150">
+                    <a href="{{ route('owner.invoices') }}" class="inline-flex items-center px-4 py-2 bg-gray-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-gray-700 focus:bg-gray-700 active:bg-gray-900 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 transition ease-in-out duration-150">
                         Clear
                     </a>
                 </div>
@@ -166,7 +166,9 @@
                             </td>
                             <td class="px-6 py-4 whitespace-nowrap">
                                 <div class="text-sm text-gray-900">{{ $invoice->apartment->unit_number ?? 'N/A' }}</div>
-                                <div class="text-sm text-gray-500">{{ $invoice->apartment->block ?? '' }} {{ $invoice->apartment->floor ? 'Floor ' . $invoice->apartment->floor : '' }}</div>
+                                @if($invoice->apartment->assessment_no)
+                                    <div class="text-sm text-gray-500">Assessment No: {{ $invoice->apartment->assessment_no }}</div>
+                                @endif
                             </td>
                             <td class="px-6 py-4 whitespace-nowrap">
                                 <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium capitalize
@@ -180,7 +182,7 @@
                                 {{ $invoice->due_date->format('M d, Y') }}
                             </td>
                             <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                                ${{ number_format($invoice->total_amount, 2) }}
+                                LKR {{ number_format($invoice->total_amount, 2) }}
                             </td>
                             <td class="px-6 py-4 whitespace-nowrap">
                                 <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium capitalize
@@ -190,7 +192,7 @@
                                 </span>
                             </td>
                             <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                                <a href="{{ route('tenant.invoices.show', $invoice) }}" class="text-blue-600 hover:text-blue-900 mr-3">View</a>
+                                <a href="{{ route('owner.invoices.show', $invoice) }}" class="text-blue-600 hover:text-blue-900 mr-3">View</a>
                                 @if($invoice->status !== 'paid')
                                     <button class="text-green-600 hover:text-green-900">Pay Now</button>
                                 @endif

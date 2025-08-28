@@ -39,16 +39,16 @@
                                     <label for="apartment_id" class="block font-medium text-sm text-gray-700 mb-2">
                                         Apartment <span class="text-red-500">*</span>
                                     </label>
-                                    <select id="apartment_id" name="apartment_id" class="block mt-1 w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 @error('apartment_id') border-red-500 @enderror" required onchange="updateTenant()">
+                                    <select id="apartment_id" name="apartment_id" class="block mt-1 w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 @error('apartment_id') border-red-500 @enderror" required onchange="updateOwner()">
                                         <option value="">Select Apartment</option>
                                         @foreach($apartments as $apartment)
                                             <option value="{{ $apartment->id }}" 
-                                                    data-tenant-id="{{ $apartment->tenant?->id }}"
+                                                    data-owner-id="{{ $apartment->owner?->id }}"
                                                     data-rent="{{ $apartment->rent_amount }}"
                                                     {{ (old('apartment_id', $invoice->apartment_id) == $apartment->id) ? 'selected' : '' }}>
                                                 {{ $apartment->number }} 
                                                 @if($apartment->block) - Block {{ $apartment->block }} @endif
-                                                ({{ $apartment->tenant?->name ?? 'No Tenant' }})
+                                                ({{ $apartment->owner?->name ?? 'No Owner' }})
                                             </option>
                                         @endforeach
                                     </select>
@@ -57,42 +57,20 @@
                                     @enderror
                                 </div>
 
-                                <!-- Tenant -->
+                                <!-- Owner -->
                                 <div>
-                                    <label for="tenant_id" class="block font-medium text-sm text-gray-700 mb-2">
-                                        Tenant <span class="text-red-500">*</span>
+                                    <label for="owner_id" class="block font-medium text-sm text-gray-700 mb-2">
+                                        Owner <span class="text-red-500">*</span>
                                     </label>
-                                    <select id="tenant_id" name="tenant_id" class="block mt-1 w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 @error('tenant_id') border-red-500 @enderror" required>
-                                        <option value="">Select Tenant</option>
-                                        @foreach($tenants as $tenant)
-                                            <option value="{{ $tenant->id }}" {{ (old('tenant_id', $invoice->tenant_id) == $tenant->id) ? 'selected' : '' }}>
-                                                {{ $tenant->name }} ({{ $tenant->email }})
+                                    <select id="owner_id" name="owner_id" class="block mt-1 w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 @error('owner_id') border-red-500 @enderror" required>
+                                        <option value="">Select Owner</option>
+                                        @foreach($owners as $owner)
+                                            <option value="{{ $owner->id }}" {{ (old('owner_id', $invoice->owner_id) == $owner->id) ? 'selected' : '' }}>
+                                                {{ $owner->name }} ({{ $owner->email }})
                                             </option>
                                         @endforeach
                                     </select>
-                                    @error('tenant_id')
-                                        <p class="mt-2 text-sm text-red-600">{{ $message }}</p>
-                                    @enderror
-                                </div>
-
-                                <!-- Lease (Optional) -->
-                                <div>
-                                    <label for="lease_id" class="block font-medium text-sm text-gray-700 mb-2">
-                                        Related Lease (Optional)
-                                    </label>
-                                    <select id="lease_id" name="lease_id" onchange="updateFromLease()" class="block mt-1 w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 @error('lease_id') border-red-500 @enderror">
-                                        <option value="">Select Lease (Optional)</option>
-                                        @foreach($leases as $lease)
-                                            <option value="{{ $lease->id }}" 
-                                                    data-apartment-id="{{ $lease->apartment_id }}"
-                                                    data-tenant-id="{{ $lease->tenant_id }}"
-                                                    data-rent="{{ $lease->rent_amount }}"
-                                                    {{ (old('lease_id', $invoice->lease_id) == $lease->id) ? 'selected' : '' }}>
-                                                {{ $lease->lease_number }} - Apt {{ $lease->apartment->number }} ({{ $lease->tenant->name }})
-                                            </option>
-                                        @endforeach
-                                    </select>
-                                    @error('lease_id')
+                                    @error('owner_id')
                                         <p class="mt-2 text-sm text-red-600">{{ $message }}</p>
                                     @enderror
                                 </div>
@@ -148,7 +126,7 @@
                                 <!-- Base Amount -->
                                 <div>
                                     <label for="amount" class="block font-medium text-sm text-gray-700 mb-2">
-                                        Amount ($) <span class="text-red-500">*</span>
+                                        Amount (LKR) <span class="text-red-500">*</span>
                                     </label>
                                     <input id="amount" class="block mt-1 w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 @error('amount') border-red-500 @enderror" 
                                            type="number" name="amount" value="{{ old('amount', $invoice->amount) }}" min="0" step="0.01" required onchange="calculateTotal()" />
@@ -210,7 +188,7 @@
                             <div class="mt-6 p-4 bg-gray-50 rounded-lg">
                                 <div class="flex justify-between items-center">
                                     <span class="text-lg font-semibold text-gray-900">Total Amount:</span>
-                                    <span id="total_display" class="text-2xl font-bold text-indigo-600">${{ number_format($invoice->total_amount, 2) }}</span>
+                                    <span id="total_display" class="text-2xl font-bold text-indigo-600">LKR {{ number_format($invoice->total_amount, 2) }}</span>
                                 </div>
                             </div>
                         </div>
@@ -241,7 +219,7 @@
                                 </div>
                                 <div>
                                     <span class="text-gray-600">Total Paid:</span>
-                                    <p class="font-medium">${{ number_format($invoice->payments->sum('amount'), 2) }}</p>
+                                    <p class="font-medium">LKR {{ number_format($invoice->payments->sum('amount'), 2) }}</p>
                                 </div>
                             </div>
                         </div>
@@ -272,44 +250,18 @@
     </div>
 
     <script>
-        function updateTenant() {
+        function updateOwner() {
             const apartmentSelect = document.getElementById('apartment_id');
-            const tenantSelect = document.getElementById('tenant_id');
+            const ownerSelect = document.getElementById('owner_id');
             const selectedOption = apartmentSelect.options[apartmentSelect.selectedIndex];
             
-            if (selectedOption.dataset.tenantId) {
-                tenantSelect.value = selectedOption.dataset.tenantId;
+            if (selectedOption.dataset.ownerId) {
+                ownerSelect.value = selectedOption.dataset.ownerId;
             } else {
-                tenantSelect.value = '';
+                ownerSelect.value = '';
             }
             
             updateBaseAmount();
-        }
-
-        function updateFromLease() {
-            const leaseSelect = document.getElementById('lease_id');
-            const apartmentSelect = document.getElementById('apartment_id');
-            const tenantSelect = document.getElementById('tenant_id');
-            const amountInput = document.getElementById('amount');
-            const selectedOption = leaseSelect.options[leaseSelect.selectedIndex];
-            
-            if (selectedOption && selectedOption.value) {
-                // Update apartment
-                if (selectedOption.dataset.apartmentId) {
-                    apartmentSelect.value = selectedOption.dataset.apartmentId;
-                }
-                
-                // Update tenant
-                if (selectedOption.dataset.tenantId) {
-                    tenantSelect.value = selectedOption.dataset.tenantId;
-                }
-                
-                // Update amount if it's a rent invoice
-                const typeSelect = document.getElementById('type');
-                if (typeSelect.value === 'rent' && selectedOption.dataset.rent) {
-                    amountInput.value = selectedOption.dataset.rent;
-                }
-            }
         }
 
         function updateBaseAmount() {

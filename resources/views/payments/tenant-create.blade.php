@@ -6,7 +6,7 @@
             </h2>
             <x-breadcrumb :items="[
                 ['name' => 'Dashboard', 'route' => 'dashboard'],
-                ['name' => 'My Payments', 'route' => 'tenant.payments'],
+                ['name' => 'My Payments', 'route' => 'owner.payments'],
                 ['name' => 'Submit Payment']
             ]" />
         </div>
@@ -18,7 +18,7 @@
                 <div class="p-6">
                     <div class="flex justify-between items-center mb-6">
                         <h3 class="text-lg font-medium text-gray-900">Payment Submission</h3>
-                        <a href="{{ route('tenant.payments') }}" class="inline-flex items-center px-4 py-2 bg-gray-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-gray-700">
+                        <a href="{{ route('owner.payments') }}" class="inline-flex items-center px-4 py-2 bg-gray-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-gray-700">
                             <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path>
                             </svg>
@@ -79,7 +79,7 @@
                             </div>
                         </div>
 
-                        <form method="POST" action="{{ route('tenant.payments.store') }}">
+                        <form method="POST" action="{{ route('owner.payments.store') }}">
                             @csrf
 
                             <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -176,7 +176,7 @@
                             </div>
 
                             <div class="flex items-center justify-end space-x-4 mt-6">
-                                <a href="{{ route('tenant.payments') }}" class="inline-flex items-center px-4 py-2 bg-gray-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-gray-700 focus:bg-gray-700 active:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 transition ease-in-out duration-150">
+                                <a href="{{ route('owner.payments') }}" class="inline-flex items-center px-4 py-2 bg-gray-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-gray-700 focus:bg-gray-700 active:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 transition ease-in-out duration-150">
                                     Cancel
                                 </a>
                                 <button type="submit" class="inline-flex items-center px-4 py-2 bg-indigo-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-indigo-700 focus:bg-indigo-700 active:bg-indigo-800 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 transition ease-in-out duration-150">
@@ -192,7 +192,7 @@
                             <h3 class="mt-2 text-sm font-medium text-gray-900">No outstanding invoices</h3>
                             <p class="mt-1 text-sm text-gray-500">You have no pending invoices to pay at this time.</p>
                             <div class="mt-6">
-                                <a href="{{ route('tenant.invoices') }}" class="inline-flex items-center px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700">
+                                <a href="{{ route('owner.invoices') }}" class="inline-flex items-center px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700">
                                     View My Invoices
                                 </a>
                             </div>

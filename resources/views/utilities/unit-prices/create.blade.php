@@ -50,7 +50,7 @@
                         <!-- Price Per Unit -->
                         <div>
                             <label for="price_per_unit" class="block text-sm font-medium text-gray-700 mb-2">
-                                Price Per Unit ($) <span class="text-red-500">*</span>
+                                Price Per Unit (LKR) <span class="text-red-500">*</span>
                             </label>
                             <div class="relative">
                                 <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">

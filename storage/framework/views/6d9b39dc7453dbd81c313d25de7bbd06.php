@@ -11,7 +11,7 @@
      <?php $__env->slot('header', null, []); ?> 
         <div class="flex justify-between items-center">
             <h2 class="font-semibold text-xl text-gray-800 leading-tight">
-                <?php echo e(__('Property Owners')); ?>
+                <?php echo e(__('Owner Management')); ?>
 
             </h2>
             <?php if (isset($component)) { $__componentOriginald0f1fd2689e4bb7060122a5b91fe8561 = $component; } ?>
@@ -65,7 +65,7 @@
 <?php unset($__componentOriginalc5711d836f933e61eafca8928e9a27a5); ?>
 <?php endif; ?>
 
-            <!-- Search and Filter Form -->
+            <!-- Search Form -->
             <?php if (isset($component)) { $__componentOriginal53747ceb358d30c0105769f8471417f6 = $component; } ?>
 <?php if (isset($attributes)) { $__attributesOriginal53747ceb358d30c0105769f8471417f6 = $attributes; } ?>
 <?php $component = Illuminate\View\AnonymousComponent::resolve(['view' => 'components.card','data' => []] + (isset($attributes) && $attributes instanceof Illuminate\View\ComponentAttributeBag ? $attributes->all() : [])); ?>
@@ -80,16 +80,8 @@
                     <form method="GET" action="<?php echo e(route('owners.index')); ?>" class="flex flex-wrap gap-4">
                         <div class="flex-1 min-w-64">
                             <input type="text" name="search" value="<?php echo e(request('search')); ?>" 
-                                   placeholder="Search by name, email, or phone..." 
+                                   placeholder="Search by name or email..." 
                                    class="w-full px-4 py-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200">
-                        </div>
-                        <div class="min-w-48">
-                            <select name="status" 
-                                    class="w-full px-4 py-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200">
-                                <option value="">All Statuses</option>
-                                <option value="active" <?php echo e(request('status') == 'active' ? 'selected' : ''); ?>>Active</option>
-                                <option value="inactive" <?php echo e(request('status') == 'inactive' ? 'selected' : ''); ?>>Inactive</option>
-                            </select>
                         </div>
                         <div class="flex gap-2">
                             <?php if (isset($component)) { $__componentOriginald0f1fd2689e4bb7060122a5b91fe8561 = $component; } ?>
@@ -116,7 +108,7 @@
 <?php $component = $__componentOriginald0f1fd2689e4bb7060122a5b91fe8561; ?>
 <?php unset($__componentOriginald0f1fd2689e4bb7060122a5b91fe8561); ?>
 <?php endif; ?>
-                            <?php if(request()->hasAny(['search', 'status'])): ?>
+                            <?php if(request()->hasAny(['search'])): ?>
                                 <?php if (isset($component)) { $__componentOriginald0f1fd2689e4bb7060122a5b91fe8561 = $component; } ?>
 <?php if (isset($attributes)) { $__attributesOriginald0f1fd2689e4bb7060122a5b91fe8561 = $attributes; } ?>
 <?php $component = Illuminate\View\AnonymousComponent::resolve(['view' => 'components.button','data' => ['href' => ''.e(route('owners.index')).'','variant' => 'secondary']] + (isset($attributes) && $attributes instanceof Illuminate\View\ComponentAttributeBag ? $attributes->all() : [])); ?>
@@ -177,10 +169,10 @@
                                             Owner
                                         </th>
                                         <th scope="col" class="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
-                                            Contact Info
+                                            Contact
                                         </th>
                                         <th scope="col" class="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
-                                            Properties
+                                            Apartment
                                         </th>
                                         <th scope="col" class="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
                                             Status
@@ -196,7 +188,7 @@
                                             <td class="px-6 py-4 whitespace-nowrap">
                                                 <div class="flex items-center">
                                                     <div class="flex-shrink-0 h-12 w-12">
-                                                        <div class="h-12 w-12 rounded-xl bg-gradient-to-br from-indigo-400 to-blue-500 flex items-center justify-center shadow-lg">
+                                                        <div class="h-12 w-12 rounded-xl bg-gradient-to-br from-amber-400 to-orange-500 flex items-center justify-center shadow-lg">
                                                             <span class="text-sm font-bold text-white">
                                                                 <?php echo e(strtoupper(substr($owner->name, 0, 2))); ?>
 
@@ -216,29 +208,41 @@
                                                 <?php endif; ?>
                                             </td>
                                             <td class="px-6 py-4 whitespace-nowrap">
-                                                <div class="flex space-x-3">
-                                                    <div class="text-center">
-                                                        <div class="text-sm font-semibold text-gray-900"><?php echo e($owner->apartments_count); ?></div>
-                                                        <div class="text-xs text-gray-500">Total</div>
+                                                <?php if($owner->ownerProfile && $owner->ownerProfile->apartment): ?>
+                                                    <div class="text-sm font-medium text-gray-900">
+                                                        <?php echo e($owner->ownerProfile->apartment->number); ?>
+
                                                     </div>
-                                                    <div class="text-center">
-                                                        <div class="text-sm font-semibold text-green-600"><?php echo e($owner->occupied_apartments_count); ?></div>
-                                                        <div class="text-xs text-gray-500">Occupied</div>
+                                                    <div class="text-sm text-gray-500">
+                                                        <?php echo e(strtoupper($owner->ownerProfile->apartment->type)); ?>
+
+                                                        <?php if($owner->ownerProfile->apartment->assessment_no): ?>
+                                                            - Assessment No <?php echo e($owner->ownerProfile->apartment->assessment_no); ?>
+
+                                                        <?php endif; ?>
                                                     </div>
-                                                    <div class="text-center">
-                                                        <div class="text-sm font-semibold text-blue-600"><?php echo e($owner->apartments_count - $owner->occupied_apartments_count); ?></div>
-                                                        <div class="text-xs text-gray-500">Vacant</div>
-                                                    </div>
-                                                </div>
+                                                <?php else: ?>
+                                                    <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">
+                                                        No Apartment
+                                                    </span>
+                                                <?php endif; ?>
                                             </td>
                                             <td class="px-6 py-4 whitespace-nowrap">
-                                                <span class="inline-flex px-3 py-1 text-xs font-semibold rounded-full 
-                                                    <?php if($owner->status === 'active'): ?> bg-green-100 text-green-800
-                                                    <?php else: ?> bg-red-100 text-red-800 <?php endif; ?>">
-                                                    <?php echo e(ucfirst($owner->status)); ?>
+                                                <?php if($owner->ownerProfile): ?>
+                                                    <span class="inline-flex px-3 py-1 text-xs font-semibold rounded-full 
+                                                        <?php if($owner->ownerProfile->status === 'active'): ?> bg-green-100 text-green-800
+                                                        <?php elseif($owner->ownerProfile->status === 'inactive'): ?> bg-red-100 text-red-800
+                                                        <?php else: ?> bg-gray-100 text-gray-800 <?php endif; ?>">
+                                                        <?php echo e(ucfirst($owner->ownerProfile->status)); ?>
 
-                                                </span>
+                                                    </span>
+                                                <?php else: ?>
+                                                    <span class="inline-flex px-3 py-1 text-xs font-semibold rounded-full bg-gray-100 text-gray-800">
+                                                        Unknown
+                                                    </span>
+                                                <?php endif; ?>
                                             </td>
+
                                             <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                                                 <div class="flex justify-end space-x-2">
                                                     <a href="<?php echo e(route('owners.show', $owner)); ?>" 
@@ -285,13 +289,13 @@
                     <?php else: ?>
                         <!-- Empty State -->
                         <div class="text-center py-16">
-                            <div class="h-16 w-16 mx-auto bg-gradient-to-br from-indigo-100 to-blue-100 rounded-xl flex items-center justify-center mb-4">
-                                <svg class="h-8 w-8 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"></path>
+                            <div class="h-16 w-16 mx-auto bg-gradient-to-br from-amber-100 to-orange-100 rounded-xl flex items-center justify-center mb-4">
+                                <svg class="h-8 w-8 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"></path>
                                 </svg>
                             </div>
                             <h3 class="text-lg font-semibold text-gray-900 mb-2">No owners found</h3>
-                            <p class="text-sm text-gray-500 mb-6">Get started by adding your first property owner.</p>
+                            <p class="text-sm text-gray-500 mb-6">Get started by creating your first owner.</p>
                             <?php if (isset($component)) { $__componentOriginald0f1fd2689e4bb7060122a5b91fe8561 = $component; } ?>
 <?php if (isset($attributes)) { $__attributesOriginald0f1fd2689e4bb7060122a5b91fe8561 = $attributes; } ?>
 <?php $component = Illuminate\View\AnonymousComponent::resolve(['view' => 'components.button','data' => ['href' => ''.e(route('owners.create')).'']] + (isset($attributes) && $attributes instanceof Illuminate\View\ComponentAttributeBag ? $attributes->all() : [])); ?>

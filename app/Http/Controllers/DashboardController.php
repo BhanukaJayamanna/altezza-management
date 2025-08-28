@@ -6,6 +6,7 @@ use Illuminate\Http\Request;
 use App\Models\Apartment;
 use App\Models\User;
 use App\Models\Owner;
+use App\Models\ManagementCorporation;
 use App\Models\Invoice;
 use App\Models\MaintenanceRequest;
 use App\Models\Complaint;
@@ -19,8 +20,8 @@ class DashboardController extends Controller
         
         if ($user->isAdmin() || $user->isManager()) {
             return $this->adminManagerDashboard();
-        } elseif ($user->isTenant()) {
-            return $this->tenantDashboard();
+        } elseif ($user->isOwner()) {
+            return $this->ownerDashboard();
         }
         
         return redirect()->route('login');
@@ -33,8 +34,8 @@ class DashboardController extends Controller
             'occupied_apartments' => Apartment::where('status', 'occupied')->count(),
             'vacant_apartments' => Apartment::where('status', 'vacant')->count(),
             'maintenance_apartments' => Apartment::where('status', 'maintenance')->count(),
-            'total_tenants' => User::where('role', 'tenant')->where('status', 'active')->count(),
-            'total_owners' => Owner::where('status', 'active')->count(),
+            'total_owners' => User::whereHas('roles', function($q) { $q->where('name', 'owner'); })->count(),
+            'total_management_corporations' => ManagementCorporation::where('status', 'active')->count(),
             'pending_invoices' => Invoice::where('status', 'pending')->count(),
             'overdue_invoices' => Invoice::where('status', 'overdue')->count(),
             'pending_maintenance' => MaintenanceRequest::where('status', 'pending')->count(),
@@ -42,15 +43,15 @@ class DashboardController extends Controller
         ];
         
         $recentActivities = [
-            'recent_invoices' => Invoice::with(['apartment', 'tenant'])
+            'recent_invoices' => Invoice::with(['apartment', 'owner'])
                 ->latest()
                 ->take(5)
                 ->get(),
-            'recent_maintenance' => MaintenanceRequest::with(['apartment', 'tenant'])
+            'recent_maintenance' => MaintenanceRequest::with(['apartment', 'owner'])
                 ->latest()
                 ->take(5)
                 ->get(),
-            'recent_complaints' => Complaint::with(['apartment', 'tenant'])
+            'recent_complaints' => Complaint::with(['apartment', 'owner'])
                 ->latest()
                 ->take(5)
                 ->get(),
@@ -59,41 +60,41 @@ class DashboardController extends Controller
         return view('dashboard.admin', compact('stats', 'recentActivities'));
     }
     
-    private function tenantDashboard()
+    private function ownerDashboard()
     {
         $user = Auth::user();
-        $tenant = $user->tenant;
+        $owner = $user->ownerProfile;
         
-        if (!$tenant) {
-            return view('dashboard.tenant-no-apartment');
+        if (!$owner) {
+            return view('dashboard.owner-no-apartment');
         }
         
         $stats = [
-            'current_apartment' => $tenant->apartment,
-            'pending_invoices' => $user->invoices()->where('status', 'pending')->count(),
-            'overdue_invoices' => $user->invoices()->where('status', 'overdue')->count(),
-            'maintenance_requests' => $user->maintenanceRequests()->where('status', '!=', 'completed')->count(),
-            'open_complaints' => $user->complaints()->where('status', '!=', 'closed')->count(),
+            'current_apartment' => $owner->apartment,
+            'pending_invoices' => Invoice::where('owner_id', $user->id)->where('status', 'pending')->count(),
+            'overdue_invoices' => Invoice::where('owner_id', $user->id)->where('status', 'overdue')->count(),
+            'maintenance_requests' => MaintenanceRequest::where('owner_id', $user->id)->where('status', '!=', 'completed')->count(),
+            'open_complaints' => Complaint::where('owner_id', $user->id)->where('status', '!=', 'closed')->count(),
         ];
         
         $recentActivities = [
-            'recent_invoices' => $user->invoices()
+            'recent_invoices' => Invoice::where('owner_id', $user->id)
                 ->with('apartment')
                 ->latest()
                 ->take(5)
                 ->get(),
-            'recent_maintenance' => $user->maintenanceRequests()
+            'recent_maintenance' => MaintenanceRequest::where('owner_id', $user->id)
                 ->with('apartment')
                 ->latest()
                 ->take(5)
                 ->get(),
-            'recent_complaints' => $user->complaints()
+            'recent_complaints' => Complaint::where('owner_id', $user->id)
                 ->with('apartment')
                 ->latest()
                 ->take(3)
                 ->get(),
         ];
         
-        return view('dashboard.tenant', compact('stats', 'recentActivities'));
+        return view('dashboard.owner', compact('stats', 'recentActivities'));
     }
 }

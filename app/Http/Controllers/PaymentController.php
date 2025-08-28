@@ -16,14 +16,14 @@ class PaymentController extends Controller
      */
     public function index(Request $request)
     {
-        $query = Payment::with(['invoice.apartment', 'invoice.tenant', 'recordedBy']);
+        $query = Payment::with(['invoice.apartment', 'invoice.owner', 'recordedBy']);
         
-        // If user is a tenant, filter to only their payments
-        if (Auth::user()->role === 'tenant') {
-            $tenantProfile = Auth::user()->tenant;
-            if ($tenantProfile) {
-                $query->whereHas('invoice', function($q) use ($tenantProfile) {
-                    $q->where('tenant_id', $tenantProfile->id);
+        // If user is a owner, filter to only their payments
+        if (Auth::user()->role === 'owner') {
+            $ownerProfile = Auth::user()->owner;
+            if ($ownerProfile) {
+                $query->whereHas('invoice', function($q) use ($ownerProfile) {
+                    $q->where('owner_id', $ownerProfile->id);
                 });
             } else {
                 $query->whereRaw('1 = 0');
@@ -50,14 +50,14 @@ class PaymentController extends Controller
 
         // Search by reference number or invoice number
         if ($request->filled('search')) {
-            if (Auth::user()->role !== 'tenant') {
+            if (Auth::user()->role !== 'owner') {
                 $query->where(function($q) use ($request) {
                     $q->where('reference_number', 'like', '%' . $request->search . '%')
                       ->orWhereHas('invoice', function($invoiceQuery) use ($request) {
                           $invoiceQuery->where('invoice_number', 'like', '%' . $request->search . '%');
                       })
-                      ->orWhereHas('invoice.tenant', function($tenantQuery) use ($request) {
-                          $tenantQuery->where('name', 'like', '%' . $request->search . '%');
+                      ->orWhereHas('invoice.owner', function($ownerQuery) use ($request) {
+                          $ownerQuery->where('name', 'like', '%' . $request->search . '%');
                       });
                 });
             } else {
@@ -69,11 +69,11 @@ class PaymentController extends Controller
         
         // Get summary statistics
         $summaryQuery = Payment::query();
-        if (Auth::user()->role === 'tenant') {
-            $tenantProfile = Auth::user()->tenant;
-            if ($tenantProfile) {
-                $summaryQuery->whereHas('invoice', function($q) use ($tenantProfile) {
-                    $q->where('tenant_id', $tenantProfile->id);
+        if (Auth::user()->role === 'owner') {
+            $ownerProfile = Auth::user()->owner;
+            if ($ownerProfile) {
+                $summaryQuery->whereHas('invoice', function($q) use ($ownerProfile) {
+                    $q->where('owner_id', $ownerProfile->id);
                 });
             } else {
                 $summaryQuery->whereRaw('1 = 0');
@@ -86,7 +86,7 @@ class PaymentController extends Controller
         $monthlyAmount = $summaryQuery->whereMonth('payment_date', now()->month)->sum('amount');
 
         // Choose appropriate view based on user role
-        $viewName = Auth::user()->role === 'tenant' ? 'payments.tenant-index' : 'payments.index';
+        $viewName = Auth::user()->role === 'owner' ? 'payments.owner-index' : 'payments.index';
         
         return view($viewName, compact(
             'payments', 'totalAmount', 'confirmedAmount', 'pendingAmount', 'monthlyAmount'
@@ -103,33 +103,33 @@ class PaymentController extends Controller
         $invoice = null;
         
         if ($invoiceId) {
-            $invoice = Invoice::with(['apartment', 'tenant'])->findOrFail($invoiceId);
+            $invoice = Invoice::with(['apartment', 'owner'])->findOrFail($invoiceId);
             
-            // If user is tenant, ensure they can only pay their own invoices
-            if (Auth::user()->role === 'tenant') {
-                $tenantProfile = Auth::user()->tenant;
-                if (!$tenantProfile || $invoice->tenant_id !== $tenantProfile->id) {
+            // If user is owner, ensure they can only pay their own invoices
+            if (Auth::user()->role === 'owner') {
+                $ownerProfile = Auth::user()->owner;
+                if (!$ownerProfile || $invoice->owner_id !== $ownerProfile->id) {
                     abort(403, 'Unauthorized access to this invoice.');
                 }
             }
-        } else if (Auth::user()->role === 'tenant') {
-            // For tenants, show their unpaid invoices to select from
-            $tenantProfile = Auth::user()->tenant;
-            if (!$tenantProfile) {
-                abort(403, 'Tenant profile not found.');
+        } else if (Auth::user()->role === 'owner') {
+            // For owners, show their unpaid invoices to select from
+            $ownerProfile = Auth::user()->owner;
+            if (!$ownerProfile) {
+                abort(403, 'Owner profile not found.');
             }
             
-            $unpaidInvoices = Invoice::where('tenant_id', $tenantProfile->id)
+            $unpaidInvoices = Invoice::where('owner_id', $ownerProfile->id)
                 ->whereIn('status', ['pending', 'partial', 'overdue'])
                 ->with('apartment')
                 ->get();
                 
-            return view('payments.tenant-create', compact('unpaidInvoices'));
+            return view('payments.owner-create', compact('unpaidInvoices'));
         }
         
         // For admin/manager, they can create payments for any invoice
-        $unpaidInvoices = Auth::user()->role !== 'tenant' 
-            ? Invoice::whereIn('status', ['pending', 'partial', 'overdue'])->with(['apartment', 'tenant'])->get()
+        $unpaidInvoices = Auth::user()->role !== 'owner' 
+            ? Invoice::whereIn('status', ['pending', 'partial', 'overdue'])->with(['apartment', 'owner'])->get()
             : collect();
         
         return view('payments.create', compact('invoice', 'unpaidInvoices'));
@@ -154,9 +154,9 @@ class PaymentController extends Controller
         $invoice = Invoice::findOrFail($request->invoice_id);
         
         // Check if user has permission to create payment for this invoice
-        if (Auth::user()->role === 'tenant') {
-            $tenantProfile = Auth::user()->tenant;
-            if (!$tenantProfile || $invoice->tenant_id !== $tenantProfile->id) {
+        if (Auth::user()->role === 'owner') {
+            $ownerProfile = Auth::user()->owner;
+            if (!$ownerProfile || $invoice->owner_id !== $ownerProfile->id) {
                 return back()->withErrors(['error' => 'You can only make payments for your own invoices.']);
             }
         }
@@ -172,20 +172,20 @@ class PaymentController extends Controller
         // Create payment
         $payment = Payment::create([
             'invoice_id' => $request->invoice_id,
-            'tenant_id' => $invoice->tenant_id,
+            'owner_id' => $invoice->owner_id,
             'amount' => $request->amount,
             'method' => $request->payment_method,
             'payment_date' => $request->payment_date,
             'reference_number' => $request->reference_number,
             'notes' => $request->notes,
-            'status' => Auth::user()->role === 'tenant' ? 'pending' : 'completed',
+            'status' => Auth::user()->role === 'owner' ? 'pending' : 'completed',
             'recorded_by' => Auth::id(),
         ]);
 
         // Update invoice status
         $this->updateInvoiceStatus($invoice);
 
-        $message = Auth::user()->role === 'tenant' 
+        $message = Auth::user()->role === 'owner' 
             ? 'Payment submitted successfully and is pending approval.'
             : 'Payment recorded successfully.';
 
@@ -199,14 +199,14 @@ class PaymentController extends Controller
     public function show(Payment $payment)
     {
         // Check permission
-        if (Auth::user()->role === 'tenant') {
-            $tenantProfile = Auth::user()->tenant;
-            if (!$tenantProfile || $payment->invoice->tenant_id !== $tenantProfile->id) {
+        if (Auth::user()->role === 'owner') {
+            $ownerProfile = Auth::user()->owner;
+            if (!$ownerProfile || $payment->invoice->owner_id !== $ownerProfile->id) {
                 abort(403, 'Unauthorized access to this payment.');
             }
         }
 
-        $payment->load(['invoice.apartment', 'invoice.tenant', 'recordedBy']);
+        $payment->load(['invoice.apartment', 'invoice.owner', 'recordedBy']);
         
         return view('payments.show', compact('payment'));
     }
@@ -217,11 +217,11 @@ class PaymentController extends Controller
     public function edit(Payment $payment)
     {
         // Only admin/manager can edit payments
-        if (Auth::user()->role === 'tenant') {
-            abort(403, 'Tenants cannot edit payments.');
+        if (Auth::user()->role === 'owner') {
+            abort(403, 'Owners cannot edit payments.');
         }
 
-        $payment->load(['invoice.apartment', 'invoice.tenant']);
+        $payment->load(['invoice.apartment', 'invoice.owner']);
         
         return view('payments.edit', compact('payment'));
     }
@@ -232,8 +232,8 @@ class PaymentController extends Controller
     public function update(Request $request, Payment $payment)
     {
         // Only admin/manager can update payments
-        if (Auth::user()->role === 'tenant') {
-            abort(403, 'Tenants cannot update payments.');
+        if (Auth::user()->role === 'owner') {
+            abort(403, 'Owners cannot update payments.');
         }
 
         $rules = [
@@ -280,8 +280,8 @@ class PaymentController extends Controller
     public function destroy(Payment $payment)
     {
         // Only admin/manager can delete payments
-        if (Auth::user()->role === 'tenant') {
-            abort(403, 'Tenants cannot delete payments.');
+        if (Auth::user()->role === 'owner') {
+            abort(403, 'Owners cannot delete payments.');
         }
 
         $invoice = $payment->invoice;
@@ -300,8 +300,8 @@ class PaymentController extends Controller
     public function approve(Payment $payment)
     {
         // Only admin/manager can approve payments
-        if (Auth::user()->role === 'tenant') {
-            abort(403, 'Tenants cannot approve payments.');
+        if (Auth::user()->role === 'owner') {
+            abort(403, 'Owners cannot approve payments.');
         }
 
         $payment->update(['status' => 'completed']);
@@ -319,8 +319,8 @@ class PaymentController extends Controller
     public function reject(Payment $payment, Request $request)
     {
         // Only admin/manager can reject payments
-        if (Auth::user()->role === 'tenant') {
-            abort(403, 'Tenants cannot reject payments.');
+        if (Auth::user()->role === 'owner') {
+            abort(403, 'Owners cannot reject payments.');
         }
 
         $request->validate([

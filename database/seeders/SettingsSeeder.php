@@ -68,7 +68,7 @@ class SettingsSeeder extends Seeder
             ],
             [
                 'key' => 'currency_symbol',
-                'value' => 'Rs.',
+                'value' => 'LKR ',
                 'type' => 'string',
                 'group' => 'financial',
                 'description' => 'Currency symbol'

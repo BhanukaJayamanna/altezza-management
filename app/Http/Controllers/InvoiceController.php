@@ -5,28 +5,37 @@ namespace App\Http\Controllers;
 use App\Models\Invoice;
 use App\Models\Apartment;
 use App\Models\User;
-use App\Models\Lease;
 use App\Models\Setting;
+use App\Services\EmailService;
+use App\Services\NotificationService;
 use Illuminate\Http\Request;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Auth;
 
 class InvoiceController extends Controller
 {
+    protected EmailService $emailService;
+    protected NotificationService $notificationService;
+
+    public function __construct(EmailService $emailService, NotificationService $notificationService)
+    {
+        $this->emailService = $emailService;
+        $this->notificationService = $notificationService;
+    }
     /**
      * Display a listing of the resource.
      */
     public function index(Request $request)
     {
-        $query = Invoice::with(['apartment', 'tenant', 'payments']);
+        $query = Invoice::with(['apartment', 'owner', 'payments']);
         
-        // If user is a tenant, filter to only their invoices
-        if (Auth::user()->role === 'tenant') {
-            $tenantProfile = Auth::user()->tenant;
-            if ($tenantProfile) {
-                $query->where('tenant_id', $tenantProfile->id);
+        // If user is a owner, filter to only their invoices
+        if (Auth::user()->role === 'owner') {
+            $ownerProfile = Auth::user()->owner;
+            if ($ownerProfile) {
+                $query->where('owner_id', $ownerProfile->id);
             } else {
-                // If no tenant profile exists, return empty collection
+                // If no owner profile exists, return empty collection
                 $query->whereRaw('1 = 0');
             }
         }
@@ -47,20 +56,20 @@ class InvoiceController extends Controller
                   ->whereMonth('due_date', $request->month);
         }
 
-        // Search by invoice number or tenant name (admin/manager only)
+        // Search by invoice number or owner name (admin/manager only)
         if ($request->filled('search')) {
             if (in_array(Auth::user()->role, ['admin', 'manager'])) {
                 $query->where(function($q) use ($request) {
                     $q->where('invoice_number', 'like', '%' . $request->search . '%')
-                      ->orWhereHas('tenant', function($tenantQuery) use ($request) {
-                          $tenantQuery->where('name', 'like', '%' . $request->search . '%');
+                      ->orWhereHas('owner', function($ownerQuery) use ($request) {
+                          $ownerQuery->where('name', 'like', '%' . $request->search . '%');
                       })
                       ->orWhereHas('apartment', function($aptQuery) use ($request) {
                           $aptQuery->where('number', 'like', '%' . $request->search . '%');
                       });
                 });
             } else {
-                // For tenants, only search by invoice number
+                // For owners, only search by invoice number
                 $query->where('invoice_number', 'like', '%' . $request->search . '%');
             }
         }
@@ -69,10 +78,10 @@ class InvoiceController extends Controller
         
         // Get summary statistics with same filtering
         $summaryQuery = Invoice::query();
-        if (Auth::user()->role === 'tenant') {
-            $tenantProfile = Auth::user()->tenant;
-            if ($tenantProfile) {
-                $summaryQuery->where('tenant_id', $tenantProfile->id);
+        if (Auth::user()->role === 'owner') {
+            $ownerProfile = Auth::user()->owner;
+            if ($ownerProfile) {
+                $summaryQuery->where('owner_id', $ownerProfile->id);
             } else {
                 $summaryQuery->whereRaw('1 = 0');
             }
@@ -84,7 +93,7 @@ class InvoiceController extends Controller
         $overdueAmount = $summaryQuery->where('status', 'overdue')->sum('total_amount');
 
         // Choose appropriate view based on user role
-        $viewName = Auth::user()->role === 'tenant' ? 'invoices.tenant-index' : 'invoices.index';
+        $viewName = Auth::user()->role === 'owner' ? 'invoices.owner-index' : 'invoices.index';
         
         return view($viewName, compact(
             'invoices', 'totalAmount', 'paidAmount', 'pendingAmount', 'overdueAmount'
@@ -96,13 +105,12 @@ class InvoiceController extends Controller
      */
     public function create()
     {
-        $apartments = Apartment::with('tenant')->where('status', 'occupied')->orderBy('number')->get();
-        $tenants = User::whereHas('roles', function($query) {
-            $query->where('name', 'tenant');
+        $apartments = Apartment::orderBy('number')->get();
+        $owners = User::whereHas('roles', function($query) {
+            $query->where('name', 'owner');
         })->orderBy('name')->get();
-        $leases = Lease::with(['apartment', 'tenant'])->where('status', 'active')->orderBy('lease_number')->get();
         
-        return view('invoices.create', compact('apartments', 'tenants', 'leases'));
+        return view('invoices.create', compact('apartments', 'owners'));
     }
 
     /**
@@ -112,8 +120,7 @@ class InvoiceController extends Controller
     {
         $validated = $request->validate([
             'apartment_id' => 'required|exists:apartments,id',
-            'tenant_id' => 'required|exists:users,id',
-            'lease_id' => 'nullable|exists:leases,id',
+            'owner_id' => 'required|exists:users,id',
             'type' => 'required|in:rent,utility,maintenance,other',
             'due_date' => 'required|date',
             'amount' => 'required|numeric|min:0',
@@ -140,8 +147,7 @@ class InvoiceController extends Controller
         $invoice = Invoice::create([
             'invoice_number' => $invoiceNumber,
             'apartment_id' => $validated['apartment_id'],
-            'tenant_id' => $validated['tenant_id'],
-            'lease_id' => $validated['lease_id'] ?? null,
+            'owner_id' => $validated['owner_id'],
             'type' => $validated['type'],
             'status' => 'pending',
             'due_date' => $validated['due_date'],
@@ -155,7 +161,16 @@ class InvoiceController extends Controller
             'created_by' => Auth::id(),
         ]);
 
-        toast_success('Invoice created successfully!');
+        // Send email notification to owner
+        $this->emailService->sendInvoiceGenerated($invoice);
+
+        // Send real-time notification to owner
+        $owner = User::find($validated['owner_id']);
+        if ($owner) {
+            $this->notificationService->invoiceCreated($owner, $invoice);
+        }
+
+        toast_success('Invoice created successfully and notification sent to owner!');
         return redirect()->route('invoices.show', $invoice);
     }
 
@@ -164,7 +179,7 @@ class InvoiceController extends Controller
      */
     public function show(Invoice $invoice)
     {
-        $invoice->load(['apartment', 'tenant', 'payments', 'createdBy']);
+        $invoice->load(['apartment', 'owner', 'payments', 'createdBy']);
         
         return view('invoices.show', compact('invoice'));
     }
@@ -180,13 +195,12 @@ class InvoiceController extends Controller
             return redirect()->route('invoices.show', $invoice);
         }
 
-        $apartments = Apartment::with('tenant')->where('status', 'occupied')->orderBy('number')->get();
-        $tenants = User::whereHas('roles', function($query) {
-            $query->where('name', 'tenant');
+        $apartments = Apartment::orderBy('number')->get();
+        $owners = User::whereHas('roles', function($query) {
+            $query->where('name', 'owner');
         })->orderBy('name')->get();
-        $leases = Lease::with(['apartment', 'tenant'])->where('status', 'active')->orderBy('lease_number')->get();
         
-        return view('invoices.edit', compact('invoice', 'apartments', 'tenants', 'leases'));
+        return view('invoices.edit', compact('invoice', 'apartments', 'owners'));
     }
 
     /**
@@ -202,8 +216,7 @@ class InvoiceController extends Controller
 
         $validated = $request->validate([
             'apartment_id' => 'required|exists:apartments,id',
-            'tenant_id' => 'required|exists:users,id',
-            'lease_id' => 'nullable|exists:leases,id',
+            'owner_id' => 'required|exists:users,id',
             'type' => 'required|in:rent,utility,maintenance,other',
             'due_date' => 'required|date',
             'amount' => 'required|numeric|min:0',
@@ -226,8 +239,7 @@ class InvoiceController extends Controller
 
         $invoice->update([
             'apartment_id' => $validated['apartment_id'],
-            'tenant_id' => $validated['tenant_id'],
-            'lease_id' => $validated['lease_id'] ?? null,
+            'owner_id' => $validated['owner_id'],
             'type' => $validated['type'],
             'due_date' => $validated['due_date'],
             'billing_period_start' => $billingStart,
@@ -275,10 +287,8 @@ class InvoiceController extends Controller
         $year = $validated['year'];
         $dueDay = $validated['due_day'];
 
-        // Get all occupied apartments
-        $apartments = Apartment::with(['tenant', 'tenantProfile'])
-            ->where('status', 'occupied')
-            ->whereNotNull('tenant_id')
+        // Get all apartments that have rent amounts set
+        $apartments = Apartment::where('status', 'occupied')
             ->whereNotNull('rent_amount')
             ->get();
 
@@ -300,6 +310,20 @@ class InvoiceController extends Controller
                     continue;
                 }
 
+                // For now, skip automatic rent generation until apartment-owner relationship is redesigned
+                $skipped++;
+                continue;
+
+                // TODO: Implement apartment-owner relationship without leases
+                /*
+                // Get owner from current lease
+                $owner = $apartment->currentLease?->owner;
+                if (!$owner) {
+                    $skipped++;
+                    continue;
+                }
+                */
+
                 // Create due date
                 $dueDate = Carbon::create($year, $month, min($dueDay, Carbon::create($year, $month)->daysInMonth));
 
@@ -309,7 +333,7 @@ class InvoiceController extends Controller
                 Invoice::create([
                     'invoice_number' => $invoiceNumber,
                     'apartment_id' => $apartment->id,
-                    'tenant_id' => $apartment->tenant_id,
+                    'owner_id' => $owner->id,
                     'type' => 'rent',
                     'status' => 'pending',
                     'due_date' => $dueDate,
@@ -380,5 +404,118 @@ class InvoiceController extends Controller
         }
 
         return sprintf("%s-%s%s-%04d", $prefix, $year, $month, $newNumber);
+    }
+
+    /**
+     * Generate and download PDF for an invoice
+     */
+    public function downloadPdf(Invoice $invoice)
+    {
+        // Authorization check
+        if (Auth::user()->role === 'owner') {
+            // Owners can only download their own invoices
+            $ownerProfile = Auth::user()->owner;
+            if (!$ownerProfile || $invoice->owner_id !== $ownerProfile->id) {
+                abort(403, 'Unauthorized access to invoice.');
+            }
+        } elseif (!in_array(Auth::user()->role, ['admin', 'manager'])) {
+            abort(403, 'Insufficient permissions.');
+        }
+
+        // Load necessary relationships
+        $invoice->load(['apartment', 'owner', 'lease', 'payments']);
+
+        // Generate PDF using DomPDF with enhanced options
+        try {
+            $pdf = app('dompdf.wrapper');
+            $pdf->loadView('invoices.pdf', compact('invoice'));
+            $pdf->setPaper('A4', 'portrait');
+            
+            // Set enhanced options for better PDF rendering
+            $pdf->setOptions([
+                'defaultFont' => 'Inter',
+                'isHtml5ParserEnabled' => true,
+                'isRemoteEnabled' => true,
+                'dpi' => 150,
+                'fontSubsetting' => true,
+                'defaultPaperSize' => 'a4',
+                'chroot' => public_path(),
+            ]);
+            
+            $filename = "Invoice-{$invoice->invoice_number}.pdf";
+            
+            return $pdf->download($filename);
+        } catch (\Exception $e) {
+            return back()->with('error', 'Failed to generate PDF: ' . $e->getMessage());
+        }
+    }
+
+    /**
+     * Preview PDF in browser
+     */
+    public function previewPdf(Invoice $invoice)
+    {
+        // Authorization check
+        if (Auth::user()->role === 'owner') {
+            $ownerProfile = Auth::user()->owner;
+            if (!$ownerProfile || $invoice->owner_id !== $ownerProfile->id) {
+                abort(403, 'Unauthorized access to invoice.');
+            }
+        } elseif (!in_array(Auth::user()->role, ['admin', 'manager'])) {
+            abort(403, 'Insufficient permissions.');
+        }
+
+        // Load necessary relationships
+        $invoice->load(['apartment', 'owner', 'lease', 'payments']);
+
+        // Return the view directly for preview
+        return view('invoices.pdf', compact('invoice'));
+    }
+
+    /**
+     * Send payment reminder for a specific invoice
+     */
+    public function sendPaymentReminder(Invoice $invoice)
+    {
+        // Authorization check - only admin/manager can send reminders
+        if (!in_array(Auth::user()->role, ['admin', 'manager'])) {
+            abort(403, 'Insufficient permissions.');
+        }
+
+        if ($invoice->status !== 'pending') {
+            toast_error('Payment reminders can only be sent for pending invoices.');
+            return back();
+        }
+
+        $success = $this->emailService->sendPaymentReminder($invoice);
+        
+        if ($success) {
+            toast_success('Payment reminder sent successfully to ' . $invoice->owner->email);
+        } else {
+            toast_error('Failed to send payment reminder. Please check the logs.');
+        }
+
+        return back();
+    }
+
+    /**
+     * Send bulk payment reminders for overdue invoices
+     */
+    public function sendBulkPaymentReminders()
+    {
+        // Authorization check - only admin/manager can send bulk reminders
+        if (!in_array(Auth::user()->role, ['admin', 'manager'])) {
+            abort(403, 'Insufficient permissions.');
+        }
+
+        $sentCount = $this->emailService->sendBulkPaymentReminders();
+        
+        if ($sentCount > 0) {
+            toast_success("Payment reminders sent to {$sentCount} owners with overdue invoices.");
+        } else {
+            toast_info('No overdue invoices found or no emails were sent.');
+        }
+
+        return back();
     }
 }

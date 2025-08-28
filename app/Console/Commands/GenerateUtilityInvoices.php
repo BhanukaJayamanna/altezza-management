@@ -52,7 +52,7 @@ class GenerateUtilityInvoices extends Command
     {
         $bills = UtilityBill::whereIn('id', $billIds)
             ->whereNull('invoice_id')
-            ->with(['apartment.currentLease', 'tenant'])
+            ->with(['apartment', 'owner'])
             ->get();
 
         $this->info("Found {$bills->count()} utility bills to generate invoices for.");
@@ -77,7 +77,7 @@ class GenerateUtilityInvoices extends Command
         $bills = UtilityBill::where('month', $month)
             ->where('year', $year)
             ->whereNull('invoice_id')
-            ->with(['apartment.currentLease', 'tenant'])
+            ->with(['apartment', 'owner'])
             ->get();
 
         $this->info("Found {$bills->count()} utility bills for {$month}/{$year} to generate invoices for.");
@@ -100,7 +100,7 @@ class GenerateUtilityInvoices extends Command
     private function generateForAllBills()
     {
         $bills = UtilityBill::whereNull('invoice_id')
-            ->with(['apartment.currentLease', 'tenant'])
+            ->with(['apartment', 'owner'])
             ->get();
 
         $this->info("Found {$bills->count()} utility bills without invoices.");

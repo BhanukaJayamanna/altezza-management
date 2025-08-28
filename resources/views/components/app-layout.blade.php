@@ -7,7 +7,7 @@
         <meta name="viewport" content="width=device-width, initial-scale=1">
         <meta name="csrf-token" content="{{ csrf_token() }}">
 
-        <title>{{ config('app.name', 'Laravel') }}</title>
+        <title>{{ config('app.name', 'Altezza Property Management') }}</title>
 
         <!-- Fonts -->
         <link rel="preconnect" href="https://fonts.bunny.net">
@@ -98,7 +98,7 @@
                                     </div>
                                     <input id="search-field" 
                                            class="block w-full h-9 pl-10 pr-3 py-2 border border-slate-200 rounded-lg bg-slate-50/50 text-slate-900 placeholder-slate-500 focus:outline-none focus:placeholder-slate-400 focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200" 
-                                           placeholder="Search properties, tenants..." 
+                                           placeholder="Search properties, owners..." 
                                            type="search" 
                                            name="search">
                                 </div>
@@ -128,11 +128,11 @@
                                         class="max-w-xs bg-white border border-slate-200 rounded-lg p-2 flex items-center text-sm hover:shadow-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-all duration-200">
                                     <span class="sr-only">Open user menu</span>
                                     <div class="h-8 w-8 rounded-lg bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center text-white font-semibold shadow-lg">
-                                        {{ substr(Auth::user()->name, 0, 1) }}
+                                        {{ substr(Auth::user()?->name ?? 'Guest', 0, 1) }}
                                     </div>
                                     <div class="hidden lg:block ml-3 text-left">
-                                        <div class="text-slate-700 text-sm font-medium">{{ Auth::user()->name }}</div>
-                                        <div class="text-slate-500 text-xs capitalize">{{ Auth::user()->role }}</div>
+                                        <div class="text-slate-700 text-sm font-medium">{{ Auth::user()?->name ?? 'Guest' }}</div>
+                                        <div class="text-slate-500 text-xs capitalize">{{ Auth::user()?->role ?? 'guest' }}</div>
                                     </div>
                                     <svg class="hidden lg:block ml-2 h-4 w-4 text-slate-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
                                         <path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd" />
@@ -154,11 +154,11 @@
                                     <div class="px-4 py-3 border-b border-slate-100">
                                         <div class="flex items-center">
                                             <div class="h-10 w-10 rounded-lg bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center text-white font-semibold">
-                                                {{ substr(Auth::user()->name, 0, 1) }}
+                                                {{ substr(Auth::user()?->name ?? 'Guest', 0, 1) }}
                                             </div>
                                             <div class="ml-3">
-                                                <div class="text-sm font-medium text-slate-900">{{ Auth::user()->name }}</div>
-                                                <div class="text-xs text-slate-500 capitalize">{{ Auth::user()->role }}</div>
+                                                <div class="text-sm font-medium text-slate-900">{{ Auth::user()?->name ?? 'Guest' }}</div>
+                                                <div class="text-xs text-slate-500 capitalize">{{ Auth::user()?->role ?? 'guest' }}</div>
                                             </div>
                                         </div>
                                     </div>

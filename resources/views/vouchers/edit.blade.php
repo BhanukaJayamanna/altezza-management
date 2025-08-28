@@ -52,7 +52,7 @@
                                     <label for="amount" class="block text-sm font-medium text-gray-700">Amount *</label>
                                     <div class="mt-1 relative rounded-md shadow-sm">
                                         <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                                            <span class="text-gray-500 sm:text-sm">₹</span>
+                                            <span class="text-gray-500 sm:text-sm">LKR</span>
                                         </div>
                                         <input type="number" name="amount" id="amount" step="0.01" min="0.01" value="{{ old('amount', $voucher->amount) }}" 
                                                class="pl-8 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 @error('amount') border-red-500 @enderror" 
@@ -121,6 +121,16 @@
                                               class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 @error('vendor_address') border-red-500 @enderror" 
                                               placeholder="Enter vendor address">{{ old('vendor_address', $voucher->vendor_address) }}</textarea>
                                     @error('vendor_address')
+                                        <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
+                                    @enderror
+                                </div>
+
+                                <div>
+                                    <label for="vendor_nic" class="block text-sm font-medium text-gray-700">NIC / BR Number</label>
+                                    <input type="text" name="vendor_nic" id="vendor_nic" 
+                                           class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 @error('vendor_nic') border-red-500 @enderror" 
+                                           placeholder="Enter NIC or Business Registration number" value="{{ old('vendor_nic', $voucher->vendor_nic) }}">
+                                    @error('vendor_nic')
                                         <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
                                     @enderror
                                 </div>

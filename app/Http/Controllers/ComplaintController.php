@@ -14,7 +14,7 @@ class ComplaintController extends Controller
      */
     public function index()
     {
-        $complaints = Complaint::with(['apartment', 'tenant'])
+        $complaints = Complaint::with(['apartment', 'owner'])
             ->latest()
             ->paginate(15);
 
@@ -26,7 +26,7 @@ class ComplaintController extends Controller
      */
     public function create()
     {
-        $apartments = Apartment::with('tenant')->get();
+        $apartments = Apartment::with('currentOwner')->get();
         return view('complaints.create', compact('apartments'));
     }
 
@@ -43,7 +43,7 @@ class ComplaintController extends Controller
             'category' => 'required|string|max:100',
         ]);
 
-        $validated['tenant_id'] = Auth::id();
+        $validated['owner_id'] = Auth::id();
         $validated['status'] = 'open';
 
         Complaint::create($validated);
@@ -57,7 +57,7 @@ class ComplaintController extends Controller
      */
     public function show(Complaint $complaint)
     {
-        $complaint->load(['apartment', 'tenant']);
+        $complaint->load(['apartment', 'owner']);
         return view('complaints.show', compact('complaint'));
     }
 
@@ -66,7 +66,7 @@ class ComplaintController extends Controller
      */
     public function edit(Complaint $complaint)
     {
-        $apartments = Apartment::with('tenant')->get();
+        $apartments = Apartment::with('currentOwner')->get();
         return view('complaints.edit', compact('complaint', 'apartments'));
     }
 
@@ -102,9 +102,9 @@ class ComplaintController extends Controller
     }
 
     /**
-     * Tenant-specific methods
+     * Owner-specific methods
      */
-    public function tenantIndex()
+    public function ownerIndex()
     {
         $user = Auth::user();
         $complaints = $user->complaints()
@@ -112,28 +112,28 @@ class ComplaintController extends Controller
             ->latest()
             ->paginate(15);
 
-        return view('tenant.complaints.index', compact('complaints'));
+        return view('owner.complaints.index', compact('complaints'));
     }
 
-    public function tenantCreate()
+    public function ownerCreate()
     {
         $user = Auth::user();
-        $tenant = $user->tenant;
+        $owner = $user->owner;
         
-        if (!$tenant || !$tenant->apartment) {
+        if (!$owner || !$owner->apartment) {
             toast_error('You must be assigned to an apartment to file complaints.');
             return redirect()->route('dashboard');
         }
 
-        return view('tenant.complaints.create', compact('tenant'));
+        return view('owner.complaints.create', compact('owner'));
     }
 
-    public function tenantStore(Request $request)
+    public function ownerStore(Request $request)
     {
         $user = Auth::user();
-        $tenant = $user->tenant;
+        $owner = $user->owner;
         
-        if (!$tenant || !$tenant->apartment) {
+        if (!$owner || !$owner->apartment) {
             toast_error('You must be assigned to an apartment to file complaints.');
             return redirect()->route('dashboard');
         }
@@ -145,24 +145,24 @@ class ComplaintController extends Controller
             'category' => 'required|string|max:100',
         ]);
 
-        $validated['apartment_id'] = $tenant->apartment_id;
-        $validated['tenant_id'] = $user->id;
+        $validated['apartment_id'] = $owner->apartment_id;
+        $validated['owner_id'] = $user->id;
         $validated['status'] = 'open';
 
         Complaint::create($validated);
 
         toast_success('Complaint filed successfully!');
-        return redirect()->route('tenant.complaints');
+        return redirect()->route('owner.complaints');
     }
 
-    public function tenantShow(Complaint $complaint)
+    public function ownerShow(Complaint $complaint)
     {
-        // Ensure tenant can only view their own complaints
-        if ($complaint->tenant_id !== Auth::id()) {
+        // Ensure owner can only view their own complaints
+        if ($complaint->owner_id !== Auth::id()) {
             abort(403);
         }
 
         $complaint->load(['apartment']);
-        return view('tenant.complaints.show', compact('complaint'));
+        return view('owner.complaints.show', compact('complaint'));
     }
 }

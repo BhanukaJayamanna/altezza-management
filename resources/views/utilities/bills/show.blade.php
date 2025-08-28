@@ -90,10 +90,10 @@
                 </div>
             </x-card>
 
-            <!-- Property & Tenant Information -->
+            <!-- Property & Owner Information -->
             <x-card>
                 <div class="px-6 py-4 border-b border-gray-200">
-                    <h3 class="text-lg font-semibold text-gray-900">Property & Tenant Information</h3>
+                    <h3 class="text-lg font-semibold text-gray-900">Property & Owner Information</h3>
                 </div>
                 <div class="px-6 py-4">
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
@@ -111,43 +111,39 @@
                                 </div>
                                 <div>
                                     <label class="block text-sm font-medium text-gray-500">Block</label>
-                                    <p class="mt-1 text-sm text-gray-900">{{ $bill->apartment->block ?? 'N/A' }}</p>
+                                    <p class="mt-1 text-sm text-gray-900">{{ $bill->apartment->assessment_no ?? 'N/A' }}</p>
                                 </div>
                                 <div>
                                     <label class="block text-sm font-medium text-gray-500">Type</label>
                                     <p class="mt-1 text-sm text-gray-900">{{ $bill->apartment->type ?? 'N/A' }}</p>
                                 </div>
-                                <div>
-                                    <label class="block text-sm font-medium text-gray-500">Floor</label>
-                                    <p class="mt-1 text-sm text-gray-900">{{ $bill->apartment->floor ?? 'N/A' }}</p>
-                                </div>
                             </div>
                         </div>
 
                         <div>
-                            <h4 class="text-base font-medium text-gray-900 mb-4">Tenant Information</h4>
-                            @if($bill->tenant)
+                            <h4 class="text-base font-medium text-gray-900 mb-4">Owner Information</h4>
+                            @if($bill->owner)
                             <div class="space-y-3">
                                 <div>
-                                    <label class="block text-sm font-medium text-gray-500">Tenant Name</label>
+                                    <label class="block text-sm font-medium text-gray-500">Owner Name</label>
                                     <p class="mt-1 text-sm text-gray-900">
-                                        <a href="{{ route('tenants.show', $bill->tenant) }}" 
+                                        <a href="{{ route('owners.show', $bill->owner) }}" 
                                            class="text-blue-600 hover:text-blue-800">
-                                            {{ $bill->tenant->name }}
+                                            {{ $bill->owner->name }}
                                         </a>
                                     </p>
                                 </div>
                                 <div>
                                     <label class="block text-sm font-medium text-gray-500">Email</label>
-                                    <p class="mt-1 text-sm text-gray-900">{{ $bill->tenant->email }}</p>
+                                    <p class="mt-1 text-sm text-gray-900">{{ $bill->owner->email }}</p>
                                 </div>
                                 <div>
                                     <label class="block text-sm font-medium text-gray-500">Phone</label>
-                                    <p class="mt-1 text-sm text-gray-900">{{ $bill->tenant->phone ?? 'N/A' }}</p>
+                                    <p class="mt-1 text-sm text-gray-900">{{ $bill->owner->phone ?? 'N/A' }}</p>
                                 </div>
                             </div>
                             @else
-                            <p class="text-sm text-gray-500">No tenant assigned to this apartment</p>
+                            <p class="text-sm text-gray-500">No owner assigned to this apartment</p>
                             @endif
                         </div>
                     </div>

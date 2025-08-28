@@ -15,6 +15,19 @@
 
             </h2>
             <div class="flex space-x-2">
+                <?php if(auth()->user()->hasRole(['admin', 'manager'])): ?>
+                    <form method="POST" action="<?php echo e(route('invoices.send-bulk-reminders')); ?>" class="inline">
+                        <?php echo csrf_field(); ?>
+                        <button type="submit" 
+                                onclick="return confirm('Send payment reminders to all owners with overdue invoices?')"
+                                class="inline-flex items-center px-4 py-2 bg-orange-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-orange-700">
+                            <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 4.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path>
+                            </svg>
+                            Send Bulk Reminders
+                        </button>
+                    </form>
+                <?php endif; ?>
                 <button onclick="document.getElementById('generate-rent-modal').classList.remove('hidden')" 
                         class="inline-flex items-center px-4 py-2 bg-green-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-green-700">
                     <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -139,7 +152,7 @@
                     <form method="GET" action="<?php echo e(route('invoices.index')); ?>" class="grid grid-cols-1 md:grid-cols-5 gap-4">
                         <div>
                             <input type="text" name="search" value="<?php echo e(request('search')); ?>" 
-                                   placeholder="Search by invoice #, tenant, or apartment..." 
+                                   placeholder="Search by invoice #, owner, or apartment..." 
                                    class="w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
                         </div>
                         <div>
@@ -202,7 +215,7 @@
                                             Invoice
                                         </th>
                                         <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                            Tenant
+                                            Owner
                                         </th>
                                         <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                                             Apartment
@@ -232,8 +245,8 @@
                                                 <div class="text-sm text-gray-500"><?php echo e($invoice->created_at->format('M d, Y')); ?></div>
                                             </td>
                                             <td class="px-6 py-4 whitespace-nowrap">
-                                                <div class="text-sm font-medium text-gray-900"><?php echo e($invoice->tenant->name); ?></div>
-                                                <div class="text-sm text-gray-500"><?php echo e($invoice->tenant->email); ?></div>
+                                                <div class="text-sm font-medium text-gray-900"><?php echo e($invoice->owner->name); ?></div>
+                                                <div class="text-sm text-gray-500"><?php echo e($invoice->owner->email); ?></div>
                                             </td>
                                             <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                                                 <?php echo e($invoice->apartment->number); ?>
@@ -244,7 +257,7 @@
                                             </td>
                                             <td class="px-6 py-4 whitespace-nowrap">
                                                 <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-800">
-                                                    <?php echo e(ucfirst($invoice->type)); ?>
+                                                    <?php echo e($invoice->type === 'rooftop_reservation' ? 'Rooftop Reservation' : ucfirst($invoice->type)); ?>
 
                                                 </span>
                                             </td>
@@ -265,11 +278,35 @@
                                                 </span>
                                             </td>
                                             <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                                                <div class="flex space-x-2">
+                                                <div class="flex flex-wrap gap-2">
                                                     <a href="<?php echo e(route('invoices.show', $invoice)); ?>" class="text-indigo-600 hover:text-indigo-900">
                                                         View
                                                     </a>
+                                                    <?php if(auth()->user()->hasRole(['admin', 'manager'])): ?>
+                                                        <a href="<?php echo e(route('invoices.preview-pdf', $invoice)); ?>" target="_blank" class="text-purple-600 hover:text-purple-900">
+                                                            Preview PDF
+                                                        </a>
+                                                        <a href="<?php echo e(route('invoices.download-pdf', $invoice)); ?>" class="text-blue-600 hover:text-blue-900">
+                                                            Download PDF
+                                                        </a>
+                                                    <?php elseif(auth()->user()->hasRole('owner')): ?>
+                                                        <a href="<?php echo e(route('owner.invoices.preview-pdf', $invoice)); ?>" target="_blank" class="text-purple-600 hover:text-purple-900">
+                                                            Preview PDF
+                                                        </a>
+                                                        <a href="<?php echo e(route('owner.invoices.download-pdf', $invoice)); ?>" class="text-blue-600 hover:text-blue-900">
+                                                            Download PDF
+                                                        </a>
+                                                    <?php endif; ?>
                                                     <?php if($invoice->status === 'pending'): ?>
+                                                        <?php if(auth()->user()->hasRole(['admin', 'manager'])): ?>
+                                                            <form method="POST" action="<?php echo e(route('invoices.send-reminder', $invoice)); ?>" class="inline">
+                                                                <?php echo csrf_field(); ?>
+                                                                <button type="submit" class="text-orange-600 hover:text-orange-900" 
+                                                                        onclick="return confirm('Send payment reminder to <?php echo e($invoice->owner->name); ?>?')">
+                                                                    Send Reminder
+                                                                </button>
+                                                            </form>
+                                                        <?php endif; ?>
                                                         <a href="<?php echo e(route('invoices.edit', $invoice)); ?>" class="text-green-600 hover:text-green-900">
                                                             Edit
                                                         </a>

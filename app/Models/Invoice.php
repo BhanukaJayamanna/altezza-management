@@ -14,9 +14,9 @@ class Invoice extends Model
         'invoice_number',
         'type',
         'apartment_id',
-        'tenant_id',
-        'lease_id',
+        'owner_id',
         'utility_bill_id',
+        'rooftop_reservation_id',
         'billing_period_start',
         'billing_period_end',
         'amount',
@@ -51,14 +51,15 @@ class Invoice extends Model
         return $this->belongsTo(Apartment::class);
     }
 
-    public function tenant()
+    public function owner()
     {
-        return $this->belongsTo(User::class, 'tenant_id');
+        return $this->belongsTo(User::class, 'owner_id');
     }
 
-    public function lease()
+    // Backward compatibility alias
+    public function tenant()
     {
-        return $this->belongsTo(Lease::class);
+        return $this->owner();
     }
 
     public function createdBy()
@@ -74,6 +75,11 @@ class Invoice extends Model
     public function utilityBill()
     {
         return $this->belongsTo(UtilityBill::class);
+    }
+
+    public function rooftopReservation()
+    {
+        return $this->belongsTo(RooftopReservation::class);
     }
 
     // Helper methods

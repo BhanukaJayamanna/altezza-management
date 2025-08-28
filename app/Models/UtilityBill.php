@@ -13,7 +13,7 @@ class UtilityBill extends Model
     use HasFactory;
 
     protected $fillable = [
-        'tenant_id',
+        'owner_id',
         'apartment_id',
         'meter_id',
         'reading_id',
@@ -41,9 +41,15 @@ class UtilityBill extends Model
         'paid_date' => 'date'
     ];
 
+    public function owner(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'owner_id');
+    }
+
+    // Backward compatibility alias
     public function tenant(): BelongsTo
     {
-        return $this->belongsTo(User::class, 'tenant_id');
+        return $this->owner();
     }
 
     public function apartment(): BelongsTo

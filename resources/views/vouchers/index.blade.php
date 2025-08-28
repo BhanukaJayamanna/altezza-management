@@ -92,7 +92,7 @@
                             <div class="ml-5 w-0 flex-1">
                                 <dl>
                                     <dt class="text-sm font-medium text-gray-500 truncate">Total Amount</dt>
-                                    <dd class="text-lg font-medium text-gray-900">₹{{ number_format($stats['total_amount'], 2) }}</dd>
+                                    <dd class="text-lg font-medium text-gray-900">LKR {{ number_format($stats['total_amount'], 2) }}</dd>
                                 </dl>
                             </div>
                         </div>
@@ -112,7 +112,7 @@
                             <div class="ml-5 w-0 flex-1">
                                 <dl>
                                     <dt class="text-sm font-medium text-gray-500 truncate">Pending Amount</dt>
-                                    <dd class="text-lg font-medium text-gray-900">₹{{ number_format($stats['pending_amount'], 2) }}</dd>
+                                    <dd class="text-lg font-medium text-gray-900">LKR {{ number_format($stats['pending_amount'], 2) }}</dd>
                                 </dl>
                             </div>
                         </div>
@@ -227,7 +227,7 @@
                                             <div class="text-sm text-gray-900">{{ ucfirst($voucher->expense_category) }}</div>
                                         </td>
                                         <td class="px-6 py-4 whitespace-nowrap">
-                                            <div class="text-sm font-medium text-gray-900">₹{{ number_format($voucher->amount, 2) }}</div>
+                                            <div class="text-sm font-medium text-gray-900">LKR {{ number_format($voucher->amount, 2) }}</div>
                                         </td>
                                         <td class="px-6 py-4 whitespace-nowrap">
                                             <span class="inline-flex px-2 py-1 text-xs font-semibold rounded-full 
